@@ -24,7 +24,7 @@ export const intakeSchema = z.object({
 export type IntakeInput = z.infer<typeof intakeSchema>;
 
 export const joinSchema = intakeSchema.extend({
-  optIn: z.literal(true, { error: "Please tick the box to join the list." }),
+  optIn: z.literal(true, { error: "Please check the box to join the list." }),
   eventSlug: z
     .string()
     .trim()

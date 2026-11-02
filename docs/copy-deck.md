@@ -164,7 +164,7 @@ Where it lives: this copy is in `/content/fallback.ts` (what the site shows with
 - Eyebrow: Book · H1: **Book an appointment**. Intro: Takes 30 seconds. Next, you'll choose your service and time and complete a short health screening on our secure booking page.
 - Steps: 1 Your details · 2 Service, time and screening · 3 Your nurse comes to you
 - Fields: First name · Last name · Email · Phone (optional) · ☐ Yes, email me Avida Luna news and offers. Unsubscribe anytime. · **Continue**
-- Under the button: Please don't include medical information here. Health screening happens privately on our secure booking page. We only email you if you tick the box. See our privacy notice.
+- Under the button: Please don't include medical information here. Health screening happens privately on our secure booking page. We only email you if you check the box. See our privacy notice.
 - Success: **Thank you. Next, choose your service and time.** Our secure booking page (powered by Hydreight) opens in a new tab. That's where you pick your service, choose a time and complete a short screening. → **Continue to secure booking** + the plain link. "After you book, you can add an optional wellness add-on like red light or aromatherapy. See add-ons"
 
 ## Event sign-up `/join` (QR)

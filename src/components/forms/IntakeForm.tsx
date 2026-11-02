@@ -137,7 +137,7 @@ export function IntakeForm({
 
     if (mode === "book") {
       // Show the booking button right away. Everyone who asks for a booking link goes on
-      // Shary's list (OPTIN says whether they ticked the box); her Mailchimp automation sends
+      // Shary's list (OPTIN says whether they checked the box); her Mailchimp automation sends
       // the one booking-link note. A Mailchimp failure is logged and never blocks booking.
       session.set(STORAGE.email, d.email);
       session.set(STORAGE.firstName, d.firstName);
@@ -428,13 +428,13 @@ export function IntakeForm({
       </button>
       <p className="text-[0.9375rem] text-[#5a6150]">
         {mode === "book"
-          ? "You'll get your booking link right away. Ticking the box is optional and doesn't affect your booking. "
+          ? "You'll get your booking link right away. Checking the box is optional and doesn't affect your booking. "
           : null}
         {NO_MEDICAL_INFO_NOTE} Health screening happens privately on our secure
         booking page.{" "}
         {mode === "book"
-          ? "Besides one note with your booking link, we only email you if you tick the box."
-          : "We only email you if you tick the box."}{" "}
+          ? "Besides one note with your booking link, we only email you if you check the box."
+          : "We only email you if you check the box."}{" "}
         See our{" "}
         <Link href="/privacy">privacy notice</Link>.
       </p>

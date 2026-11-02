@@ -97,7 +97,7 @@ test.describe("/join (Wellness Notes from a Nurse)", () => {
     await page.getByLabel("Last name").fill("Rivera");
     await page.getByLabel("Email", { exact: true }).fill("ana@example.com");
     await page.getByRole("button", { name: "Send me my free copy" }).click();
-    await expect(page.getByText("Please tick the box to join the list.")).toBeVisible();
+    await expect(page.getByText("Please check the box to join the list.")).toBeVisible();
     expect(mocks.mailchimp).toHaveLength(0);
 
     await page.getByRole("checkbox").check();
