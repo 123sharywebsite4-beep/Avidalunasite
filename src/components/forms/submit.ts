@@ -56,6 +56,9 @@ export function readForm(form: HTMLFormElement) {
 export const STORAGE = {
   email: "avidaluna:email",
   firstName: "avidaluna:firstName",
+  lastName: "avidaluna:lastName",
+  /** The package being booked on /book (slug), so a refresh restores the right flow. */
+  packageSlug: "avidaluna:package",
   selection: "avidaluna:addons",
   /** Booking step to restore on refresh: "book" (step 2) or "addons" (step 3). */
   step: "avidaluna:step",

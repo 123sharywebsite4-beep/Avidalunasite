@@ -5,13 +5,25 @@ The website for **Avida Luna LLC, doing business as Avida Luna Wellness** (avida
 
 **Medical booking, screening and payment happen on Hydreight**, not on this site. The site never asks for or stores health information.
 
+### Pricing and booking rules (Shary, November 2026)
+- One-time bookings only: no memberships, recurring billing or prepaid multi-visit series.
+- **Medical** (IVs, IM injections, IV nutrient add-ons): booked, screened and paid on Hydreight.
+- **Non-medical** (targeted red light, compression boots, aromatherapy, Vitamin Wellness Spray): reserved on the site and paid at the visit. Each has a standalone price and a lower enhancement price (when added to an appointment or package). "Pay at my visit" is the only payment option for now: Stripe is still wired up but has no keys.
+- **Packages** (`package` documents): restorative (Luna Light / Reset / Signature Reset), IV wellness, and B12 wellness. For IV and B12 packages the site shows the split: the IV/injection's price is paid on Hydreight, the rest of the package price at the visit. It never asks which IV (Recovery Reset's Energy-or-Athlete choice is made on Hydreight). Every IV/injection package shows the "Required medical consultation included…" line; there's no consultation charge anywhere.
+- **Travel** (Contact info in Sanity): restorative-only visits pay a travel fee ($8) once per appointment, shown with the total before submitting. IV visits have travel included within a 35-minute one-way drive ("Additional travel charges may apply and will be confirmed before booking."). Injection-only travel isn't decided yet, so the B12 packages show "Booking opens soon" (Sanity: **Booking open** off) and IM injections have no booking button.
+- **Timing**: IV infusion time and total appointment time are always shown separately. Aromatherapy runs alongside the service and adds no time.
+- **Booking flows** on `/book` (static page; the flow is picked in the browser from the URL):
+  - `/book` and `/book?package=<iv package>`: details → Hydreight → enhancements (only ones the package doesn't include) → "Pay at my visit" sends Netlify form `booking-extras`.
+  - `/book?package=<luna package>` and `/book?restorative=1`: the restorative request form (Netlify form `restorative-request`, Mailchimp `SOURCE=restorative`). One main choice at its own price, extras at enhancement prices, plus the travel fee.
+- **Compliance exception**: "Detox/Hangover IV" and "Migraine IV" are Shary's own service names (her responsibility under our agreement). `ALLOWED_SERVICE_NAMES` in `studio/lib/compliance.ts` skips exactly those two names; the words are still flagged everywhere else.
+
 | Part | Tool |
 |---|---|
 | Website | Next.js 16 (App Router, TypeScript) + Tailwind 4, hosted on Netlify |
 | Content Shary edits | Sanity Studio at `avidaluna.sanity.studio` (code in `/studio`) |
 | Add-on payments | Stripe Checkout (hosted page), behind `src/lib/payments` so another processor can replace it |
 | Email list | Mailchimp, through Shary's **public signup form** (no API key), posted in the background from the site's own forms (`src/lib/mailchimp-signup.ts`) |
-| Form emails | Netlify Forms: "contact", "group-request" and "add-ons-at-visit" are emailed to Shary (`public/__forms.html`) |
+| Form emails | Netlify Forms: "contact", "group-request", "add-ons-at-visit", "booking-extras" and "restorative-request" are emailed to Shary (`public/__forms.html`) |
 | Booking-link note | Shary's Mailchimp automation on `SOURCE = booking` (the site sends no email itself) |
 | IV booking | Hydreight: https://booking.hydreight.com/widget-business/an92x |
 
@@ -46,7 +58,8 @@ Public pages read from Sanity's CDN (cheap on the free allowance). The only unca
 If Sanity isn't configured, the site renders from `/content/fallback.ts`, so builds never break.
 
 ## Payments: how the price stays honest
-- The browser sends only `[{ id, quantity }]` to `/api/checkout`, never a price.
+- Online payment is off in production (no Stripe keys), so clients pay add-ons at the visit. The code below stays for later.
+- The browser sends only `[{ id, quantity }]` to `/api/checkout`, never a price. Add-ons are charged at their enhancement price (they're for a booked appointment).
 - The server reads those add-ons live from Sanity, rejects hidden or unknown items, caps quantity at 10, and builds Stripe line items from the server-side prices.
 - The webhook `/api/stripe/webhook` verifies Stripe's signature and logs only the session ID, items and amount.
 - To switch processors (e.g. Square): implement `AddOnPaymentProvider` in `src/lib/payments/`, and change one line in `src/lib/payments/index.ts`.
@@ -60,7 +73,9 @@ No email service and no Mailchimp API key: Shary keeps her inbox and her Mailchi
 | /join (Wellness Notes from a Nurse) | Nowhere else | `join` or `join:<event-slug>`, `yes` (box required). Shows an error if Mailchimp fails |
 | Contact form | Netlify form `contact` → emailed to Shary | Only if the box is ticked: `contact`, `yes` |
 | Group-event request | Netlify form `group-request` → emailed to Shary | Only if the box is ticked: `group`, `yes` |
-| "Pay at my visit" (add-ons) | Netlify form `add-ons-at-visit` → emailed to Shary | Never |
+| "Pay at my visit" (/add-ons) | Netlify form `add-ons-at-visit` → emailed to Shary | Never |
+| "Pay at my visit" (/book step 3: package items + enhancements) | Netlify form `booking-extras` (name, email, package, non-medical items, amount due at the visit) → emailed to Shary | Never |
+| Restorative-visit request (/book?restorative=1, Luna packages) | Netlify form `restorative-request` (name, email, phone, city/ZIP, choice, enhancements, travel fee, total, 2–3 preferred times) → emailed to Shary | Always: `restorative`, `yes`/`no` |
 
 - Mailchimp gets only `EMAIL`, `FNAME`, `LNAME`, `SOURCE` and `OPTIN`, from the browser, via her signup form's JSONP endpoint (`subscribe/post-json`), with Mailchimp's honeypot field sent empty. "Already subscribed" counts as success; it gives up after 8 seconds. The form values and the two merge tag names can be overridden with the `NEXT_PUBLIC_MAILCHIMP_*` env vars (see `.env.example`).
 - The CSP allows scripts from `https://avidaluna.us22.list-manage.com` for that JSONP reply. Nothing else was opened.
@@ -70,7 +85,7 @@ No email service and no Mailchimp API key: Shary keeps her inbox and her Mailchi
 ### Setup (details and tests in `CHECKLIST.md` sections 2 and 4)
 Netlify (Abe):
 - Forms → enable form detection.
-- Project configuration → Notifications → Form submission notifications → email "contact", "group-request" and "add-ons-at-visit" submissions to YourRNShary@gmail.com.
+- Project configuration → Notifications → Form submission notifications → email "contact", "group-request", "add-ons-at-visit", "booking-extras" and "restorative-request" submissions to YourRNShary@gmail.com.
 
 Mailchimp (Shary does this in her own account):
 - Audience fields: add two text fields with the merge tags `SOURCE` and `OPTIN`.
@@ -110,6 +125,8 @@ It would mark the client as booked in Mailchimp, which triggers the add-on offer
 | `src/app/` | Pages and API routes |
 | `src/components/` | Header, footer, cards, forms, add-on picker |
 | `src/lib/content.ts` | All content reads (Sanity with fallback) |
+| `src/lib/packages.ts` | Package split, travel fee, enhancement prices and filtering (shared by pages, forms and llms.txt) |
+| `studio/scripts/update-packages-pricing.ts` | One-off, dry-run-first Sanity update for the November 2026 pricing (see `CHECKLIST.md`) |
 | `src/lib/constants.ts` | `CONTACT_EMAIL`, `HYDREIGHT_BOOKING_URL`, phone, legal name, Mailchimp signup form values |
 | `src/lib/validation.ts` | Form schemas (no health fields) |
 | `src/lib/mailchimp-signup.ts` | Browser helper that adds someone to Shary's list (EMAIL, FNAME, LNAME, SOURCE, OPTIN only) |

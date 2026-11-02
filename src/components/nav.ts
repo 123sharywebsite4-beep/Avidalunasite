@@ -1,5 +1,6 @@
 export const mainNav = [
   { href: "/services", label: "Services" },
+  { href: "/packages", label: "Packages" },
   { href: "/#how", label: "How it works" },
   { href: "/about", label: "Meet your nurse" },
   { href: "/events", label: "Group & corporate" },
@@ -10,5 +11,5 @@ export const mainNav = [
 /** Secondary pages: reachable from the mobile menu and footer, kept out of the main bar. */
 export const secondaryNav = [
   { href: "/contact", label: "Contact" },
-  { href: "/add-ons", label: "Wellness add-ons" },
+  { href: "/add-ons", label: "Enhancements" },
 ] as const;

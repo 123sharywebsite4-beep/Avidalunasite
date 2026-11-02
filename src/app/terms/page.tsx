@@ -40,11 +40,15 @@ export default async function TermsPage() {
           only if you are cleared through that screening.
         </p>
 
-        <h2 className="pt-4 text-2xl">Wellness add-ons</h2>
+        <h2 className="pt-4 text-2xl">Restorative services, enhancements and packages</h2>
         <p>
-          Add-ons bought on this website are non-medical extras for an
-          appointment you have booked. Prices are shown in US dollars at
-          checkout. Cancellation and refund terms: TODO from Shary.
+          Restorative services, enhancements and the Vitamin Wellness Spray are
+          non-medical and are paid at your visit. Prices are in US dollars.
+          Every booking, including a package, is a one-time visit: there are no
+          memberships, recurring charges or prepaid series. For a package with
+          an IV or IM injection, the IV or injection is paid on our booking
+          partner&apos;s page and the rest at your visit. Cancellation and
+          refund terms: TODO from Shary.
         </p>
 
         <h2 className="pt-4 text-2xl">Contact</h2>

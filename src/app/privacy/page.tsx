@@ -37,8 +37,14 @@ export default async function PrivacyPage() {
             for events the date, city, group size and event type.
           </li>
           <li>
-            If you choose to pay for add-ons at your visit: your first name,
-            email and the add-ons to bring.
+            If you choose to pay for add-ons or a package at your visit: your
+            name, email, the package name, the non-medical items to bring and
+            the amount due at your visit. Never which IV you chose.
+          </li>
+          <li>
+            On the restorative visit request: your phone number, city or ZIP
+            code, the package or services you chose, and two or three
+            preferred dates and times.
           </li>
           <li>
             For add-on payments: the appointment date you enter at checkout, and
@@ -59,16 +65,18 @@ export default async function PrivacyPage() {
         <ul className="list-disc space-y-1 pl-6">
           <li>
             Netlify hosts this website. It also receives and stores the
-            messages you send through our contact, group event and
-            &ldquo;pay at my visit&rdquo; forms, and emails them to us.
+            messages you send through our contact, group event, restorative
+            visit request and &ldquo;pay at my visit&rdquo; forms, and emails
+            them to us.
           </li>
           <li>
             Mailchimp runs our email list. When you ask for a booking link, it
             gets your first name, last name and email, plus where you signed
             up and whether you ticked the box, so it can send you one note with
             your booking link. We only send you other emails if you ticked the
-            box. On /join, and on the contact and group event forms when you
-            tick the box, it gets the same details.
+            box. On /join and the restorative visit request, and on the contact
+            and group event forms when you tick the box, it gets the same
+            details.
           </li>
           <li>Stripe processes add-on payments.</li>
           <li>

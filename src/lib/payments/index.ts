@@ -1,5 +1,6 @@
 import "server-only";
 import { getAddOnsForCheckout } from "../content";
+import { enhancementPrice } from "../packages";
 import { MAX_ADDON_QUANTITY } from "../validation";
 import { stripeClient, stripeProvider } from "./stripe";
 import type { AddOnPaymentProvider, CheckoutSession, PricedLine } from "./types";
@@ -36,15 +37,17 @@ export async function priceAddOns(items: { id: string; quantity: number }[]): Pr
     throw new CheckoutError("Some of these add-ons are no longer available. Please refresh the page.", 409);
   }
 
+  // Add-ons are bought for an appointment already booked, so they're charged at the enhancement price.
   return addOns.map((a) => {
-    if (!Number.isFinite(a.price) || a.price < 1 || a.price > 1000) {
+    const price = enhancementPrice(a);
+    if (!Number.isFinite(price) || price < 1 || price > 1000) {
       throw new CheckoutError("One of these add-ons has no valid price yet.", 409);
     }
     return {
       id: a.id,
       name: a.name,
       description: a.description,
-      unitAmountCents: Math.round(a.price * 100),
+      unitAmountCents: Math.round(price * 100),
       quantity: wanted.get(a.id)!,
     };
   });

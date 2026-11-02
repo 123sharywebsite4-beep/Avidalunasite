@@ -52,7 +52,7 @@ export function TextField({
   defaultValue,
   ...p
 }: Common & {
-  type?: "text" | "email" | "tel" | "date";
+  type?: "text" | "email" | "tel" | "date" | "datetime-local";
   autoComplete?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   max?: string;

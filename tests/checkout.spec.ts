@@ -7,7 +7,7 @@ test.describe("add-on checkout", () => {
     const atVisit = page.getByRole("button", { name: "Pay at my visit" }).locator("visible=true");
     await expect(pay).toBeDisabled();
     await expect(atVisit).toBeDisabled();
-    await page.getByRole("button", { name: "Add one Red Light Therapy" }).click();
+    await page.getByRole("button", { name: "Add one Targeted Red Light" }).click();
     await expect(pay).toBeEnabled();
     await expect(atVisit).toBeEnabled();
   });
@@ -18,12 +18,12 @@ test.describe("add-on checkout", () => {
       sessionStorage.setItem("avidaluna:firstName", "Ana");
       sessionStorage.setItem("avidaluna:email", "ana@example.com");
     });
-    await page.getByRole("button", { name: "Add one Red Light Therapy" }).click();
+    await page.getByRole("button", { name: "Add one Targeted Red Light" }).click();
     await page.getByRole("button", { name: "Pay at my visit" }).locator("visible=true").click();
     const dialog = page.getByTestId("at-visit-dialog");
     await expect(dialog.getByLabel("First name")).toHaveValue("Ana");
     await expect(dialog.getByLabel("Email")).toHaveValue("ana@example.com");
-    await dialog.getByRole("button", { name: "Confirm add-ons" }).click();
+    await dialog.getByRole("button", { name: "Confirm enhancements" }).click();
     await expect(dialog.getByRole("heading", { name: "You're all set." })).toBeVisible();
 
     expect(mocks.netlify).toHaveLength(1);
@@ -32,8 +32,8 @@ test.describe("add-on checkout", () => {
       "form-name": "add-ons-at-visit",
       firstName: "Ana",
       email: "ana@example.com",
-      addOns: "Red Light Therapy × 1: $29",
-      total: "$29",
+      addOns: "Targeted Red Light × 1: $25",
+      total: "$25",
       "bot-field": "",
     });
     expect(mocks.mailchimp).toHaveLength(0);
@@ -42,17 +42,17 @@ test.describe("add-on checkout", () => {
 
   test("pay at my visit needs a name and email, and says so if Netlify fails", async ({ page, mocks }) => {
     await page.goto("/add-ons");
-    await page.getByRole("button", { name: "Add one Red Light Therapy" }).click();
+    await page.getByRole("button", { name: "Add one Targeted Red Light" }).click();
     await page.getByRole("button", { name: "Pay at my visit" }).locator("visible=true").click();
     const dialog = page.getByTestId("at-visit-dialog");
-    await dialog.getByRole("button", { name: "Confirm add-ons" }).click();
+    await dialog.getByRole("button", { name: "Confirm enhancements" }).click();
     await expect(dialog.getByText("Please enter your name.")).toBeVisible();
     expect(mocks.netlify).toHaveLength(0);
 
     mocks.netlifyFails = true;
     await dialog.getByLabel("First name").fill("Ana");
     await dialog.getByLabel("Email").fill("ana@example.com");
-    await dialog.getByRole("button", { name: "Confirm add-ons" }).click();
+    await dialog.getByRole("button", { name: "Confirm enhancements" }).click();
     await expect(dialog.getByText("Sorry, that didn't send. Please try again, or just tell Shary at your visit.")).toBeVisible();
   });
 
@@ -69,7 +69,7 @@ test.describe("add-on checkout", () => {
     expect(tooMany.status()).toBe(400);
   });
 
-  test("a tampered price in the request is ignored; the server price is charged", async ({ request }) => {
+  test("a tampered price in the request is ignored; the server's enhancement price is charged", async ({ request }) => {
     await resetMock(request);
     const res = await request.post("/api/checkout", {
       data: {
@@ -81,7 +81,7 @@ test.describe("add-on checkout", () => {
     expect(res.status()).toBe(200);
     const stripeCall = (await mockRequests(request)).find((c) => c.path === "/v1/checkout/sessions");
     const form = new URLSearchParams(stripeCall!.body);
-    expect(form.get("line_items[0][price_data][unit_amount]")).toBe("2900");
+    expect(form.get("line_items[0][price_data][unit_amount]")).toBe("2500");
     expect(form.get("line_items[0][quantity]")).toBe("2");
     expect(form.get("line_items[0][price_data][currency]")).toBe("usd");
     expect(form.get("mode")).toBe("payment");
@@ -92,24 +92,24 @@ test.describe("add-on checkout", () => {
   test("checkout creates a session and the success page lists what was paid", async ({ page, request }) => {
     await resetMock(request);
     await page.goto("/add-ons");
-    await page.getByRole("button", { name: "Add one Red Light Therapy" }).click();
+    await page.getByRole("button", { name: "Add one Targeted Red Light" }).click();
     await page.getByRole("button", { name: "Add one Aromatherapy" }).click();
     await page.getByRole("button", { name: "Pay now by card" }).locator("visible=true").click();
     await expect(page).toHaveURL(/\/add-ons\/success\?session_id=cs_test_/);
     await expect(page.getByRole("heading", { name: "You're all set." })).toBeVisible();
-    await expect(page.getByText("Red Light Therapy × 1")).toBeVisible();
-    await expect(page.getByText("$49")).toBeVisible();
+    await expect(page.getByText("Targeted Red Light × 1")).toBeVisible();
+    await expect(page.getByText("$40")).toBeVisible();
   });
 
   test("the cancel page restores the selection", async ({ page }) => {
     await page.goto("/add-ons");
-    const plus = page.getByRole("button", { name: "Add one Red Light Therapy" });
+    const plus = page.getByRole("button", { name: "Add one Targeted Red Light" });
     await plus.click();
     await plus.click();
-    await expect(page.getByLabel("Red Light Therapy: 2")).toBeVisible();
+    await expect(page.getByLabel("Targeted Red Light: 2")).toBeVisible();
     await page.goto("/add-ons/cancel");
     await expect(page.getByRole("heading", { name: "No charge was made." })).toBeVisible();
-    await expect(page.getByLabel("Red Light Therapy: 2")).toBeVisible();
+    await expect(page.getByLabel("Targeted Red Light: 2")).toBeVisible();
   });
 
   test("the success page doesn't confirm a made-up session", async ({ page }) => {

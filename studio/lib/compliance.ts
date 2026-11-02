@@ -51,6 +51,15 @@ export const COMPLIANCE_WORDS = [
   "cjc-1295",
 ];
 
+/**
+ * CLIENT-APPROVED exceptions. Shary chose these exact service names herself; medical wording
+ * is her responsibility under our agreement. Only these exact names (same spelling and case)
+ * are skipped: the words inside them ("detox", "hangover", "migraine") are still flagged
+ * everywhere else, including in descriptions and anywhere these names are reworded.
+ * Studio may still warn on the name field; that's expected.
+ */
+export const ALLOWED_SERVICE_NAMES = ["Detox/Hangover IV", "Migraine IV"] as const;
+
 export const COMPLIANCE_WARNING =
   "This word can sound like a medical claim. Please reword it or check it before publishing.";
 
@@ -62,7 +71,9 @@ const pattern = new RegExp(`(^|[^a-z0-9])(${COMPLIANCE_WORDS.map(escape).join("|
 
 export function findComplianceWord(text: string | undefined | null): string | null {
   if (!text) return null;
-  const match = pattern.exec(text);
+  let checked = text;
+  for (const name of ALLOWED_SERVICE_NAMES) checked = checked.split(name).join(" ");
+  const match = pattern.exec(checked);
   return match ? match[2] : null;
 }
 

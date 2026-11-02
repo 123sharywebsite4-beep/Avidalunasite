@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { IntakeForm } from "@/components/forms/IntakeForm";
+import { Suspense } from "react";
+import { BookingRouter } from "@/components/BookingRouter";
 import { PageHero } from "@/components/PageHero";
 import { HYDREIGHT_BOOKING_URL } from "@/lib/constants";
-import { getAddOns, getPageText } from "@/lib/content";
+import { getAddOns, getPackages, getPageText, getSiteSettings } from "@/lib/content";
 import { paymentsEnabled } from "@/lib/payments";
 import { pageMetadata } from "@/lib/seo";
 
@@ -16,18 +17,33 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function BookPage() {
-  const [text, addOns] = await Promise.all([getPageText("book"), getAddOns()]);
+  const [text, addOns, packages, settings] = await Promise.all([
+    getPageText("book"),
+    getAddOns(),
+    getPackages(),
+    getSiteSettings(),
+  ]);
+  const bookingSettings = {
+    travelFee: settings.travelFee,
+    travelIncludedMinutes: settings.travelIncludedMinutes,
+    ivInfusionTime: settings.ivInfusionTime,
+    ivAppointmentTime: settings.ivAppointmentTime,
+  };
   return (
     <div className="booking-page">
       <PageHero eyebrow="Book" heading={text.heading} intro={text.intro} />
-      {/* Steps 1 and 2 are narrow; step 3 (add-ons) uses the full width. */}
+      {/* Steps 1 and 2 are narrow; step 3 (enhancements) uses the full width. */}
       <section className="container-page py-10 md:py-14">
-        <IntakeForm
-          mode="book"
-          hydreightUrl={HYDREIGHT_BOOKING_URL}
-          addOns={addOns}
-          paymentsEnabled={paymentsEnabled()}
-        />
+        {/* The flow depends on ?package= / ?restorative, read in the browser so the page stays static. */}
+        <Suspense fallback={<p className="card mx-auto max-w-2xl p-6 md:p-8">Loading your booking options…</p>}>
+          <BookingRouter
+            hydreightUrl={HYDREIGHT_BOOKING_URL}
+            addOns={addOns}
+            packages={packages}
+            settings={bookingSettings}
+            paymentsEnabled={paymentsEnabled()}
+          />
+        </Suspense>
       </section>
     </div>
   );
