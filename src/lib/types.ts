@@ -24,14 +24,46 @@ export type Service = {
   todo?: string;
 };
 
+/** A restorative service (red light, boots, aromatherapy) or take-home product (spray). Non-medical. */
+export type AddOnKind = "service" | "product";
+
 export type AddOn = {
   id: string;
   name: string;
   description: string;
+  /** Appointment time it adds. Null when it adds none (aromatherapy runs alongside; products). */
   durationMinutes: number | null;
+  /** Standalone price: booked on its own, or the spray bought on its own. */
   price: number;
+  /** Lower price when added to an existing appointment or package. Falls back to `price`. */
+  enhancementPrice: number | null;
+  kind: AddOnKind;
   image: ImageRef;
   todo?: string;
+};
+
+export type PackageType = "restorative" | "iv" | "injection";
+
+/** One thing a package includes: a medical service (booked on Hydreight) or a restorative item. */
+export type PackageItem = {
+  id: string;
+  name: string;
+  /** "medical" = an IV or IM injection, paid on Hydreight. */
+  kind: "medical" | "restorative";
+  price: number | null;
+  durationMinutes: number | null;
+};
+
+export type WellnessPackage = {
+  id: string;
+  slug: string;
+  name: string;
+  type: PackageType;
+  includes: PackageItem[];
+  /** IVs the client chooses between on Hydreight. Never asked on this website. */
+  ivChoices: PackageItem[];
+  price: number;
+  bookingOpen: boolean;
 };
 
 export type EventItem = {
@@ -78,6 +110,14 @@ export type SiteSettings = {
   instagram: string | null;
   facebook: string | null;
   footerNote: string;
+  /** Restorative-only appointments: charged once per appointment. */
+  travelFee: number;
+  /** IV appointments: travel is included within this one-way drive time. */
+  travelIncludedMinutes: number;
+  /** e.g. "About 35–40 minutes". */
+  ivInfusionTime: string;
+  /** The whole IV appointment (consultation, setup, enhancements), shown separately from the infusion. */
+  ivAppointmentTime: string;
 };
 
 export type PageSection = { heading?: string; text?: string };
@@ -86,6 +126,7 @@ export type PageText = { heading: string; intro: string; sections: Record<string
 export type PageKey =
   | "home"
   | "services"
+  | "packages"
   | "addons"
   | "events"
   | "education"

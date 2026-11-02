@@ -10,19 +10,26 @@ Changes show on avidaluna.com **about a minute after you press Publish**. You do
 
 | Menu item | What it changes |
 |---|---|
-| **Services** | Your drips and vitamin boosts on the Services page |
-| **Add-ons** | Red light, aromatherapy and other rituals, with prices people pay online |
+| **Services** | Your IVs, IV nutrient add-ons and IM injections on the Services page |
+| **Packages** | Your restorative, IV and B12 wellness packages |
+| **Restorative & add-ons** | Red light, compression boots, aromatherapy and the Vitamin Wellness Spray, with their standalone and enhancement prices |
 | **Events** | Public events and pop-ups. They disappear from the site by themselves after the date. |
 | **Wellness articles** | Your Wellness Education articles |
 | **FAQ** | The questions and answers. "Show on" picks the FAQ page or the Services page |
 | **Page text** | Headings and short intros on each page |
-| **Contact info** | Phone, email, service area, Instagram, Facebook, footer note |
+| **Contact info** | Phone, email, service area, Instagram, Facebook, footer note, the travel fee, IV travel minutes and IV timing |
 | **Testimonials** | Client quotes (hidden on the site until you add one) |
 
 ## Everyday tasks
 
-**Change an add-on price**
-Add-ons → click the add-on → change **Price** → **Publish**. Online checkout uses the new price right away.
+**Change a restorative price**
+Restorative & add-ons → click the item → change **Standalone price** (booked on its own) or **Enhancement price** (added to an appointment or package) → **Publish**.
+
+**Change a package**
+Packages → click the package → change **Includes** or **Package price** → **Publish**. For IV and B12 packages the website works out the split by itself: the IV or injection's price (from Services) is paid on Hydreight, and the rest of the package price at the visit. To show "Booking opens soon" instead of the booking button, turn off **Booking open**. Packages are always one-time bookings.
+
+**Change the travel fee or IV timing**
+Contact info → **Travel fee for restorative-only visits**, **IV travel included (minutes)**, **IV infusion time** or **Total IV appointment time** → **Publish**.
 
 *[Screenshot: an add-on with the Price field]*
 

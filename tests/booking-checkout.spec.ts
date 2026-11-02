@@ -86,7 +86,7 @@ test("Book now, return to the tab, step 3, pay by card", async ({ page, request 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Booked? Make it a ritual." })).toBeVisible();
 
-  await page.getByRole("button", { name: "Add one Red Light Therapy" }).click();
+  await page.getByRole("button", { name: "Add one Targeted Red Light" }).click();
   await page.getByRole("button", { name: "Pay now by card" }).locator("visible=true").click();
   await page.waitForURL(/\/add-ons\/success\?session_id=cs_test_mock/);
   await expect(page.getByRole("heading", { name: "You're all set." })).toBeVisible();
@@ -141,7 +141,7 @@ test("the text link counts as Book now too", async ({ page }) => {
   await expect(page.getByTestId("book-addons")).toBeVisible();
 });
 
-test("pay at my visit from step 3 goes to Netlify Forms with the step 1 details", async ({ page, mocks }) => {
+test("pay at my visit from step 3 sends Shary \"booking-extras\" with the step 1 details", async ({ page, mocks }) => {
   const email = uniqueEmail("atvisit");
   await completeStep1(page, email);
   await page.getByRole("button", { name: "I've booked, show me add-ons" }).click();
@@ -149,13 +149,20 @@ test("pay at my visit from step 3 goes to Netlify Forms with the step 1 details"
   await page.getByRole("button", { name: "Pay at my visit" }).locator("visible=true").click();
   const dialog = page.getByTestId("at-visit-dialog");
   await expect(dialog.getByLabel("First name")).toHaveValue("Ana");
+  await expect(dialog.getByLabel("Last name")).toHaveValue("Rivera");
   await expect(dialog.getByLabel("Email")).toHaveValue(email);
-  await dialog.getByRole("button", { name: "Confirm add-ons" }).click();
+  await dialog.getByRole("button", { name: "Confirm enhancements" }).click();
   await expect(dialog.getByRole("heading", { name: "You're all set." })).toBeVisible();
   expect(mocks.netlify).toHaveLength(1);
-  expect(mocks.netlify[0].get("form-name")).toBe("add-ons-at-visit");
-  expect(mocks.netlify[0].get("email")).toBe(email);
-  expect(mocks.netlify[0].get("addOns")).toMatch(/^Aromatherapy × 1: \$[\d.,]+$/);
+  expect(Object.fromEntries(mocks.netlify[0])).toEqual({
+    "form-name": "booking-extras",
+    name: "Ana Rivera",
+    email,
+    package: "None",
+    items: "Enhancement: Aromatherapy × 1: $15",
+    dueAtVisit: "$15",
+    "bot-field": "",
+  });
 });
 
 test("steps 2 and 3 pass axe (WCAG 2.2 AA)", async ({ page }) => {

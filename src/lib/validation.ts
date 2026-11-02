@@ -94,6 +94,40 @@ export const atVisitSchema = z.object({
 });
 export type AtVisitInput = z.infer<typeof atVisitSchema>;
 
+/** "Pay at my visit" from /book step 3: also the last name, for the "booking-extras" email to Shary. */
+export const bookingExtrasSchema = atVisitSchema.extend({ lastName: name });
+
+const preferredTime = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Please choose a date and time.");
+
+/**
+ * Restorative-only visit request (no IV or injection, so no Hydreight): contact details,
+ * where, what, and two or three preferred times. No health fields.
+ */
+export const restorativeRequestSchema = z.object({
+  firstName: name,
+  lastName: name,
+  email,
+  phone: z
+    .string()
+    .trim()
+    .max(25)
+    .refine((v) => /^[+\d][\d\s().-]{6,}$/.test(v), "Please enter a valid phone number."),
+  cityZip: shortText(80).min(2, "Please enter your city or ZIP code."),
+  selection: z
+    .string()
+    .trim()
+    .regex(/^(package|item):[a-z0-9-]{1,96}$/, "Please choose a package or service."),
+  extras: z.array(z.string().trim().min(1).max(100)).max(10),
+  preferred1: preferredTime,
+  preferred2: preferredTime,
+  preferred3: preferredTime.or(z.literal("")),
+  optIn: z.boolean().default(false),
+});
+export type RestorativeRequestInput = z.infer<typeof restorativeRequestSchema>;
+
 /** Field errors keyed by field name, first message only. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

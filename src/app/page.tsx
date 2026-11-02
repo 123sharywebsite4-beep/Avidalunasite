@@ -23,27 +23,27 @@ export const metadata: Metadata = pageMetadata({
 
 const previewMenu = [
   {
-    name: "Hydration",
+    name: "Hydration IV (Lactated Ringer's)",
     description: "Our starting option for IV hydration.",
     price: 99,
   },
   {
-    name: "Athlete Recovery",
+    name: "Athlete Recovery IV",
     description: "An IV option for your post-training plans.",
     price: 180,
   },
   {
-    name: "Energy",
+    name: "Energy IV",
     description: "Personalized IV wellness, with your nurse.",
     price: 180,
   },
   {
-    name: "Myers",
+    name: "Myers IV",
     description: "Discuss this IV option with Shary.",
     price: 199,
   },
   {
-    name: "Myers with Chromium",
+    name: "Myers with Chromium IV",
     description: "A Myers option with chromium.",
     price: 240,
   },

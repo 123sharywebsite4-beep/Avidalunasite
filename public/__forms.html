@@ -12,7 +12,9 @@
   with form-name). Field names must match exactly what the components send:
     contact           src/components/forms/ContactForm.tsx
     group-request     src/components/forms/GroupRequestForm.tsx
-    add-ons-at-visit  src/components/AddOnPicker.tsx ("Pay at my visit")
+    add-ons-at-visit  src/components/AddOnPicker.tsx ("Pay at my visit" on /add-ons)
+    booking-extras    src/components/AddOnPicker.tsx ("Pay at my visit" on /book step 3: package + enhancements)
+    restorative-request  src/components/forms/RestorativeRequestForm.tsx (restorative-only visits)
   No health fields, ever. Netlify emails each submission to Shary (Netlify UI > Forms > notifications).
 -->
 <form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
@@ -47,6 +49,34 @@
   <input type="email" name="email">
   <textarea name="addOns"></textarea>
   <input type="text" name="total">
+</form>
+
+<form name="booking-extras" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="booking-extras">
+  <input type="text" name="bot-field">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <input type="text" name="package">
+  <textarea name="items"></textarea>
+  <input type="text" name="dueAtVisit">
+</form>
+
+<form name="restorative-request" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="restorative-request">
+  <input type="text" name="bot-field">
+  <input type="text" name="firstName">
+  <input type="text" name="lastName">
+  <input type="email" name="email">
+  <input type="tel" name="phone">
+  <input type="text" name="cityZip">
+  <input type="text" name="selection">
+  <textarea name="enhancements"></textarea>
+  <input type="text" name="travelFee">
+  <input type="text" name="total">
+  <input type="text" name="preferred1">
+  <input type="text" name="preferred2">
+  <input type="text" name="preferred3">
+  <input type="text" name="optIn">
 </form>
 </body>
 </html>

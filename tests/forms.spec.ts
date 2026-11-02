@@ -138,5 +138,10 @@ test("the static Netlify form definitions match what the site sends", async ({ r
     ["bot-field", "city", "email", "eventDate", "eventType", "form-name", "groupSize", "name", "note", "optIn", "phone"],
   );
   expect(fields("add-ons-at-visit")).toEqual(["addOns", "bot-field", "email", "firstName", "form-name", "total"]);
+  expect(fields("booking-extras")).toEqual(["bot-field", "dueAtVisit", "email", "form-name", "items", "name", "package"]);
+  expect(fields("restorative-request")).toEqual(
+    ["bot-field", "cityZip", "email", "enhancements", "firstName", "form-name", "lastName", "optIn", "phone",
+      "preferred1", "preferred2", "preferred3", "selection", "total", "travelFee"],
+  );
   expect(html).not.toMatch(/symptom|condition|medication|allerg|diagnos|pregnan/i);
 });

@@ -7,11 +7,12 @@ import { Todo } from "./Todo";
 
 const pageLinks = [
   { href: "/services", label: "Services" },
+  { href: "/packages", label: "Packages" },
   { href: "/events", label: "Group & corporate" },
   { href: "/about", label: "About Shary" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
-  { href: "/add-ons", label: "Wellness add-ons" },
+  { href: "/add-ons", label: "Enhancements" },
   { href: "/wellness-education", label: "Wellness education" },
   { href: "/book", label: "Book an appointment" },
 ];

@@ -16,6 +16,10 @@ docs.push({
   email: content.siteSettings.email,
   serviceArea: content.siteSettings.serviceArea,
   footerNote: content.siteSettings.footerNote,
+  travelFee: content.siteSettings.travelFee,
+  travelIncludedMinutes: content.siteSettings.travelIncludedMinutes,
+  ivInfusionTime: content.siteSettings.ivInfusionTime,
+  ivAppointmentTime: content.siteSettings.ivAppointmentTime,
 });
 
 // Placeholder cards that exist only to show a TODO on the preview are not seeded.
@@ -43,8 +47,27 @@ content.addOns.forEach((a, i) =>
     _type: "addon",
     name: a.name,
     description: a.description,
+    kind: a.kind,
     ...(a.durationMinutes ? { duration: a.durationMinutes } : {}),
     price: a.price,
+    ...(a.enhancementPrice ? { enhancementPrice: a.enhancementPrice } : {}),
+    order: i + 1,
+    visible: true,
+  }),
+);
+
+const ref = (id: string) => ({ _key: id, _type: "reference", _ref: id });
+content.packages.forEach((p, i) =>
+  docs.push({
+    _id: p.id,
+    _type: "package",
+    name: p.name,
+    slug: { _type: "slug", current: p.slug },
+    type: p.type,
+    includes: p.includes.map(ref),
+    ...(p.ivChoices?.length ? { ivChoices: p.ivChoices.map(ref) } : {}),
+    price: p.price,
+    bookingOpen: p.bookingOpen,
     order: i + 1,
     visible: true,
   }),

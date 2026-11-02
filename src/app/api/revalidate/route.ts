@@ -7,6 +7,7 @@ import { parseBody } from "next-sanity/webhook";
 const KNOWN_TYPES = new Set([
   "service",
   "addon",
+  "package",
   "event",
   "article",
   "faq",

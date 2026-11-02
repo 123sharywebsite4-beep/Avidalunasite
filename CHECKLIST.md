@@ -16,11 +16,23 @@ Things the code can't do for us, in roughly the order to do them. Every service 
       `cd studio && npm install && npx sanity login && npx sanity deploy`
 - [ ] Import the starting content: `npm run seed:build` (from the repo root), then
       `cd studio && npm run seed` (`--replace` overwrites seeded documents with the same IDs).
+      **Only for an empty dataset.** Once Shary has edited anything, never re-run it: use a one-off update script like the one below.
+
+### November 2026 pricing, packages and booking update (one-off)
+Updates only the documents and fields in Shary's pricing spec (service names and prices, restorative prices and enhancement prices, compression boots and the Vitamin Wellness Spray, the eight packages, travel and IV timing in Contact info, the affected FAQ answers and page text). Everything else Shary edited is left alone. The "Recovery add-on" placeholder is hidden, not deleted. If a document has an unpublished draft, the draft gets the same fields.
+- [ ] Deploy the Studio first, so the new **Packages** menu and fields exist: `cd studio && npx sanity deploy`
+- [ ] Dry run (prints every change as `old -> new`, writes nothing):
+      `cd studio && npx sanity exec scripts/update-packages-pricing.ts --with-user-token`
+- [ ] Read the diff. Anything Shary reworded on purpose (an FAQ answer, a page heading) shows up here: if she'd rather keep hers, edit it back in the Studio after applying.
+- [ ] Apply: `cd studio && npx sanity exec scripts/update-packages-pricing.ts --with-user-token -- --apply`
+- [ ] Run the dry run again: it should say every document is already up to date.
+- [ ] If it lists documents under "Check by hand" (aromatherapy with "45 minutes"), fix them in the Studio.
+- [ ] Add `"package"` to the webhook filter (below) so package edits go live without a deploy.
 - [ ] CORS origins (sanity.io/manage → API → CORS): `http://localhost:3000`, the Netlify preview URL, `https://www.avidaluna.com`. No credentials needed for the site; the Studio host is added automatically.
 - [ ] Webhook (sanity.io/manage → API → Webhooks):
   - URL `https://www.avidaluna.com/api/revalidate` (add a second one for the preview URL while testing)
   - Dataset `production`, trigger on create, update, delete
-  - Filter: `_type in ["service","addon","event","article","faq","pageText","siteSettings","testimonial"]`
+  - Filter: `_type in ["service","addon","package","event","article","faq","pageText","siteSettings","testimonial"]`
   - Projection: `{_type}`
   - Secret: the same long random string as `SANITY_REVALIDATE_SECRET`
   - HTTP method POST, API version `v2025-02-19` or newer
@@ -33,9 +45,9 @@ Things the code can't do for us, in roughly the order to do them. Every service 
 - [ ] Consider turning off automatic deploy previews for every push once review is done (Site configuration → Build & deploy), to save credits.
 
 ### Netlify Forms (Abe)
-The contact form, the group-event request and "Pay at my visit" are Netlify forms (`contact`, `group-request`, `add-ons-at-visit`, defined in `public/__forms.html`).
-- [ ] **Forms → Enable form detection.** Then redeploy once so Netlify registers the three forms (they should appear under Forms).
-- [ ] **Project configuration → Notifications → Form submission notifications** (Netlify's docs also call it Forms → Submission notifications → Add notification): add an **Email notification** to `YourRNShary@gmail.com` for each of `contact`, `group-request` and `add-ons-at-visit` (or one for "Any form"). The `add-ons-at-visit` one tells Shary which add-ons to bring.
+The contact form, the group-event request, "Pay at my visit", the package/enhancement confirmation and the restorative-visit request are Netlify forms (`contact`, `group-request`, `add-ons-at-visit`, `booking-extras`, `restorative-request`, defined in `public/__forms.html`).
+- [ ] **Forms → Enable form detection.** Then redeploy once so Netlify registers the five forms (they should appear under Forms).
+- [ ] **Project configuration → Notifications → Form submission notifications** (Netlify's docs also call it Forms → Submission notifications → Add notification): add an **Email notification** to `YourRNShary@gmail.com` for each of `contact`, `group-request`, `add-ons-at-visit`, `booking-extras` and `restorative-request` (or one for "Any form"). `booking-extras` tells Shary which package items and enhancements to bring and what's due at the visit; `restorative-request` is a restorative-only visit to confirm with the client by text or email.
 - [ ] Test each form on the deploy preview with a real-looking email and full sentences (Netlify's spam filter flags `test@test.com`). Missing submission? Look under **Spam submissions** first.
 - [ ] Check the free-plan form submission allowance at netlify.com/pricing.
 
@@ -58,6 +70,7 @@ The site adds people through her public signup form (no API key, no access to he
 | /join | `join`, or `join:<event-slug>` if they picked an event | `yes` (required) |
 | Contact form, box ticked | `contact` | `yes` |
 | Group-event request, box ticked | `group` | `yes` |
+| Restorative-visit request (everyone who sends one) | `restorative` | `yes` if they ticked the box, else `no` |
 
 - [ ] **Audience fields:** add two **Text** fields with the merge tags **`SOURCE`** and **`OPTIN`** (Audience → Settings → Audience fields and \*|MERGE|\* tags). They can be hidden on her signup form. `EMAIL`, `FNAME`, `LNAME` and `PHONE` already exist (the site no longer sends `PHONE`).
 - [ ] **Turn off reCAPTCHA** on her signup form, or the site's background sign-ups will fail.
@@ -103,9 +116,10 @@ The site adds people through her public signup form (no API key, no access to he
 - [ ] Instagram and Facebook links
 - [ ] Confirmed drip names and prices (do they match Hydreight?), and whether glutathione / B-complex stay listed
 - [ ] Recovery Ritual contents and duration
-- [ ] Service area and travel fee
+- [ ] Service area. Travel pricing for injection-only appointments and the B12 packages (booking for them shows "Booking opens soon" until this is decided; then turn on **Booking open** on each B12 package in the Studio)
+- [ ] Typical total IV appointment length (Contact info → "Total IV appointment time")
 - [ ] Cancellation and refund policy
-- [ ] Visit length
+- [ ] Photos for compression boots and the Vitamin Wellness Spray
 - [ ] The PubMed link for her article
 - [ ] Whether anyone else attends appointments ("our caring team" on the current site)
 - [ ] Her written approval of `/docs/copy-deck.md`

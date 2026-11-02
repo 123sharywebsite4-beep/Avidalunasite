@@ -4,6 +4,7 @@ import { complianceCheck } from "../lib/compliance";
 export const PAGES = [
   { id: "home", title: "Home" },
   { id: "services", title: "Services" },
+  { id: "packages", title: "Packages" },
   { id: "addons", title: "Add-ons" },
   { id: "events", title: "Group events" },
   { id: "education", title: "Wellness Education" },

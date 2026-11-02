@@ -11,6 +11,7 @@ import type {
   Faq,
   PageKey,
   PageText,
+  PackageType,
   Service,
   SiteSettings,
   Testimonial,
@@ -26,6 +27,12 @@ export const siteSettings: SiteSettings = {
   facebook: null,
   footerNote:
     "Medical services are booked and screened through our secure, HIPAA-compliant booking partner. This website is general information, not medical advice.",
+  travelFee: 8,
+  travelIncludedMinutes: 35,
+  ivInfusionTime: "About 35–40 minutes",
+  // TODO: Shary to confirm a typical total appointment length for an IV visit.
+  ivAppointmentTime:
+    "Longer than the infusion. Allow extra time for your consultation, setup and any enhancements, which are done separately.",
 };
 
 // Communities shown as tags in the home page "Where we provide care" section.
@@ -64,7 +71,7 @@ export const cityAreas: { city: string; text: string }[] = [
 export const services: Service[] = [
   {
     id: "service-recovery",
-    name: "Hydration",
+    name: "Hydration IV (Lactated Ringer's)",
     category: "iv",
     description:
       "Our essential IV. Fluids and electrolytes for a quick reset after a hard workout, a late night or a long week.",
@@ -75,7 +82,7 @@ export const services: Service[] = [
   },
   {
     id: "service-athlete-recovery",
-    name: "Athlete Recovery",
+    name: "Athlete Recovery IV",
     category: "iv",
     description:
       "Amino acids and B12 with IV fluids, to support muscle recovery and endurance when you train hard.",
@@ -86,7 +93,7 @@ export const services: Service[] = [
   },
   {
     id: "service-energy",
-    name: "Energy",
+    name: "Energy IV",
     category: "iv",
     description:
       "A blend of amino acids, vitamins and minerals to support your body\u2019s natural energy, for weeks when you\u2019re running on empty.",
@@ -97,7 +104,8 @@ export const services: Service[] = [
   },
   {
     id: "service-reset",
-    name: "Reset",
+    // Service name chosen by Shary (client-approved; see ALLOWED_SERVICE_NAMES in studio/lib/compliance.ts).
+    name: "Detox/Hangover IV",
     category: "iv",
     description:
       "Fluids with essential vitamins and minerals, to rehydrate and help you bounce back after a big night out or a packed weekend.",
@@ -107,66 +115,77 @@ export const services: Service[] = [
     image: { src: "/services/reset.webp", alt: "A woman relaxing on a sofa with a glass of water in a sunny living room", width: 2000, height: 1242 },
   },
   {
+    id: "service-migraine",
+    // Service name chosen by Shary (client-approved; see ALLOWED_SERVICE_NAMES in studio/lib/compliance.ts).
+    name: "Migraine IV",
+    category: "iv",
+    description:
+      "IV fluids with vitamins and minerals, given and monitored by Shary. Ask her whether it\u2019s a good fit for you.",
+    price: 190,
+    showPrice: true,
+    image: null,
+  },
+  {
     id: "service-myers",
-    name: "Myers",
+    name: "Myers IV",
     category: "iv",
     description:
       "The classic Myers cocktail: B vitamins, vitamin C, magnesium and calcium, to replenish electrolytes and leave you feeling restored.",
     goodFor: "Overall wellness · Relaxation",
     price: 199,
     showPrice: true,
-    optionName: "With chromium",
+    optionName: "Myers with Chromium IV",
     optionPrice: 240,
     image: { src: "/services/vitamin-vials.webp", alt: "Vitamin vials labeled Avida Luna on a stone tray", width: 1448, height: 1086 },
   },
   {
-    id: "boost-b-complex",
-    name: "B-complex",
+    id: "boost-b12",
+    name: "B12 IV Add-On",
     category: "boost",
-    description: "A blend of B vitamins, added to your drip.",
+    description: "Vitamin B12, added to your IV.",
     price: 35,
     showPrice: true,
     image: null,
   },
   {
-    id: "boost-b12",
-    name: "Vitamin B12",
+    id: "boost-b-complex",
+    name: "B-Complex IV Add-On",
     category: "boost",
-    description: "Vitamin B12, added to your drip.",
+    description: "A blend of B vitamins, added to your IV.",
     price: 40,
     showPrice: true,
     image: null,
   },
   {
     id: "boost-glutathione",
-    name: "Glutathione",
+    name: "Glutathione IV Add-On",
     category: "boost",
-    description: "An antioxidant add-in for your drip.",
+    description: "An antioxidant added to your IV.",
     price: 45,
     showPrice: true,
     image: null,
   },
   {
     id: "service-b12",
-    name: "Vitamin B12",
+    name: "B12 IM Injection",
     category: "vitamin",
     description: "A quick vitamin B12 shot, given by Shary during your visit.",
-    price: 45,
-    showPrice: true,
-    image: null,
-  },
-  {
-    id: "service-b-complex",
-    name: "B-complex",
-    category: "vitamin",
-    description: "A blend of B vitamins, given as a quick shot.",
     price: 40,
     showPrice: true,
     image: null,
   },
   {
+    id: "service-b-complex",
+    name: "B-Complex IM Injection",
+    category: "vitamin",
+    description: "A blend of B vitamins, given as a quick shot.",
+    price: 45,
+    showPrice: true,
+    image: null,
+  },
+  {
     id: "service-glutathione",
-    name: "Glutathione",
+    name: "Glutathione IM Injection",
     category: "vitamin",
     description: "A quick glutathione shot. Ask Shary if it\u2019s a fit for you.",
     price: 50,
@@ -175,32 +194,80 @@ export const services: Service[] = [
   },
 ];
 
+// Restorative services and take-home products (non-medical). `price` is the standalone price;
+// `enhancementPrice` applies when added to an existing appointment or package.
+export const AROMATHERAPY_DURATION =
+  "Aromatherapy \u2014 duration is based on your selected service and continues throughout that service.";
+
 export const addOns: AddOn[] = [
   {
     id: "addon-red-light",
-    name: "Red Light Therapy",
-    description: "A relaxing red light session while you rest.",
+    name: "Targeted Red Light",
+    description: "A relaxing, targeted red light session while you rest.",
     durationMinutes: 15,
     price: 29,
+    enhancementPrice: 25,
+    kind: "service",
+    image: null,
+  },
+  {
+    id: "addon-compression-boots",
+    name: "Compression Boots",
+    description: "Sit back and relax in compression boots.",
+    durationMinutes: 30,
+    price: 39,
+    enhancementPrice: 35,
+    kind: "service",
     image: null,
   },
   {
     id: "addon-aromatherapy",
     name: "Aromatherapy",
-    description: "Calming essential oils during your visit.",
-    durationMinutes: 45,
+    // Runs alongside the service and adds no appointment time, so it has no duration.
+    description: `${AROMATHERAPY_DURATION} It runs alongside your service and adds no appointment time.`,
+    durationMinutes: null,
     price: 20,
+    enhancementPrice: 15,
+    kind: "service",
     image: null,
   },
   {
-    id: "addon-recovery-ritual",
-    name: "Recovery add-on",
-    description: "A little extra comfort for your visit. Details coming soon.",
+    id: "addon-vitamin-spray",
+    name: "Vitamin Wellness Spray",
+    description: "A take-home vitamin spray. $37 on its own, or $35 with a service or package.",
     durationMinutes: null,
-    price: 39,
+    price: 37,
+    enhancementPrice: 35,
+    kind: "product",
     image: null,
-    todo: "Recovery Ritual contents, duration and description from Shary.",
   },
+];
+
+/**
+ * Packages. One-time bookings only: no memberships, recurring billing or prepaid series.
+ * `includes` and `ivChoices` are service / add-on ids (references in Sanity).
+ */
+export type PackageSeed = {
+  id: string;
+  slug: string;
+  name: string;
+  type: PackageType;
+  includes: string[];
+  ivChoices?: string[];
+  price: number;
+  bookingOpen: boolean;
+};
+
+export const packages: PackageSeed[] = [
+  { id: "package-luna-light", slug: "luna-light", name: "Luna Light", type: "restorative", includes: ["addon-red-light", "addon-aromatherapy"], price: 45, bookingOpen: true },
+  { id: "package-luna-reset", slug: "luna-reset", name: "Luna Reset", type: "restorative", includes: ["addon-red-light", "addon-compression-boots"], price: 65, bookingOpen: true },
+  { id: "package-luna-signature-reset", slug: "luna-signature-reset", name: "Luna Signature Reset", type: "restorative", includes: ["addon-red-light", "addon-compression-boots", "addon-aromatherapy"], price: 79, bookingOpen: true },
+  { id: "package-hydrate-and-unwind", slug: "hydrate-and-unwind", name: "Hydrate & Unwind", type: "iv", includes: ["service-recovery", "addon-red-light", "addon-aromatherapy"], price: 139, bookingOpen: true },
+  { id: "package-recovery-reset", slug: "recovery-reset", name: "Recovery Reset", type: "iv", includes: ["addon-compression-boots"], ivChoices: ["service-energy", "service-athlete-recovery"], price: 209, bookingOpen: true },
+  { id: "package-signature-luna-iv", slug: "signature-luna-iv-experience", name: "Signature Luna IV Experience", type: "iv", includes: ["service-myers", "addon-red-light", "addon-compression-boots", "addon-aromatherapy"], price: 269, bookingOpen: true },
+  // Booking stays closed until Shary decides travel pricing for injection appointments.
+  { id: "package-b12-and-light", slug: "b12-and-light", name: "B12 & Light", type: "injection", includes: ["service-b12", "addon-red-light"], price: 65, bookingOpen: false },
+  { id: "package-b12-and-restore", slug: "b12-and-restore", name: "B12 & Restore", type: "injection", includes: ["service-b12", "addon-red-light", "addon-compression-boots"], price: 99, bookingOpen: false },
 ];
 
 export const events: EventItem[] = [];
@@ -239,13 +306,13 @@ export const faqs: Faq[] = [
     id: "faq-services",
     question: "What services do you offer?",
     answer:
-      "Mobile IV hydration drips (Hydration, Athlete Recovery, Energy, Reset and Myers), vitamin injections (B12, B-complex and glutathione), vitamin add-ins for your drip, personalized consultations, and group and corporate IV events. Optional red light and aromatherapy add-ons can be added to an IV appointment.",
+      "Mobile IV drips (Hydration IV (Lactated Ringer's), Energy IV, Athlete Recovery IV, Detox/Hangover IV, Migraine IV, Myers IV and Myers with Chromium IV), IM injections (B12, B-Complex and Glutathione), IV nutrient add-ons, wellness packages, and group and corporate IV events. Restorative services (targeted red light, compression boots and aromatherapy) can be booked on their own or added to an appointment, and our Vitamin Wellness Spray is available to take home.",
   },
   {
     id: "faq-cost",
     question: "How much does mobile IV therapy cost?",
     answer:
-      "IV drips start at $99 for Hydration. Athlete Recovery and Energy are $180, Reset is $190, and Myers is $199 ($240 with chromium). Vitamin injections start at $40, and vitamin add-ins for your drip start at $35. Final pricing is confirmed when you book.",
+      "Hydration IV (Lactated Ringer's) is $99. Energy IV and Athlete Recovery IV are $180, Detox/Hangover IV and Migraine IV are $190, Myers IV is $199 and Myers with Chromium IV is $240. IM injections are $40 to $50, and IV nutrient add-ons are $35 to $45. Restorative services start at $20, and packages start at $45. Each booking is a one-time visit: no memberships, subscriptions or prepaid series.",
   },
   {
     id: "faq-spanish",
@@ -258,19 +325,25 @@ export const faqs: Faq[] = [
     id: "faq-book",
     question: "How do I book?",
     answer:
-      "Tap Book and share your name and email. You'll get your booking link right away, then pick your services, a time, and complete your screening and payment on our secure, HIPAA-compliant booking page. Once Shary reviews your screening, you'll be asked to get cleared by our medical provider before your visit. Optional add-ons come after.",
+      "For an IV, tap Book and share your name and email. You'll get your booking link right away, then pick your services, a time, and complete your screening and payment on our secure, HIPAA-compliant booking page. Once Shary reviews your screening, you'll be asked to get cleared by our medical provider before your visit. Optional enhancements come after. For red light, compression boots or aromatherapy on their own, send a restorative visit request with a few preferred times and Shary will confirm by text or email.",
   },
   {
     id: "faq-pay",
     question: "How do I pay?",
     answer:
-      "IV services are booked and paid on our secure, HIPAA-compliant booking page. Add-ons can be paid at your visit (tap to pay or card) or online by card on our Add-ons page.",
+      "IVs and IM injections are booked and paid on our secure, HIPAA-compliant booking page. Restorative services, enhancements and the Vitamin Wellness Spray are paid at your visit, by tap to pay or card. For a package that includes an IV, you pay the IV's price on the booking page and the rest of the package price at your visit.",
   },
   {
     id: "faq-addons",
-    question: "Can I add red light or aromatherapy?",
+    question: "Can I add red light, compression boots or aromatherapy?",
     answer:
-      "Yes, as optional add-ons to an IV appointment. After you book, choose them on our Add-ons page and pay at your visit or online by card.",
+      "Yes. Added to an appointment you've already booked, they're enhancement prices: targeted red light (15 minutes) $25, compression boots (30 minutes) $35, aromatherapy $15, and the take-home Vitamin Wellness Spray $35. Booked on their own they're $29, $39 and $20, and the spray is $37. Aromatherapy \u2014 duration is based on your selected service and continues throughout that service. Pay at your visit.",
+  },
+  {
+    id: "faq-packages",
+    question: "Do you offer packages or memberships?",
+    answer:
+      "We offer wellness packages that combine services in one visit, such as Hydrate & Unwind or Luna Signature Reset. Every package is a one-time booking: there are no memberships, recurring billing or prepaid multi-visit series. Packages with an IV or IM injection include the required medical consultation at no extra charge.",
   },
   {
     id: "faq-cancel",
@@ -302,8 +375,9 @@ export const faqs: Faq[] = [
   {
     id: "faq-length",
     question: "How long does a visit take?",
-    answer: "Visit length depends on the drip and any add-ons you choose.",
-    todo: "Typical visit length from Shary.",
+    answer:
+      "An IV infusion takes about 35\u201340 minutes. The full appointment takes longer, because it includes your consultation, setup and any enhancements, which are done separately. Targeted red light is 15 minutes and compression boots are 30 minutes. Aromatherapy \u2014 duration is based on your selected service and continues throughout that service, so it adds no appointment time.",
+    todo: "Typical total IV appointment length from Shary.",
   },
   {
     id: "faq-who",
@@ -331,8 +405,8 @@ export const faqs: Faq[] = [
     id: "faq-travel",
     question: "Do you come to Sarasota and Bradenton? Is there a travel fee?",
     answer:
-      "Shary is based in Lakewood Ranch and comes to homes, offices and events in Lakewood Ranch, Sarasota, Bradenton and nearby communities, including Siesta Key, Longboat Key, Palmer Ranch, University Park, Fruitville, Osprey and Bee Ridge. Not on the list? Ask when you book.",
-    todo: "Shary to confirm the service area and any travel fee.",
+      "Shary is based in Lakewood Ranch and comes to homes, offices and events in Lakewood Ranch, Sarasota, Bradenton and nearby communities, including Siesta Key, Longboat Key, Palmer Ranch, University Park, Fruitville, Osprey and Bee Ridge. For IV appointments, including those with restorative enhancements, travel is included within a 35-minute one-way drive from her service starting location. Additional travel charges may apply and will be confirmed before booking. Restorative-only appointments have an $8 travel fee, once per appointment.",
+    todo: "Shary to confirm the service area and travel for injection-only appointments.",
   },
   {
     id: "faq-groups",
@@ -346,14 +420,14 @@ export const faqs: Faq[] = [
     placement: "services",
     question: "Which IV drip should I choose?",
     answer:
-      "Hydration is our essential IV: fluids and electrolytes. Athlete Recovery adds amino acids and B12 for training days, Energy is a blend of amino acids, vitamins and minerals for busy weeks, Reset is for after a big night out or a packed weekend, and Myers is the classic Myers cocktail. Not sure? Shary talks it through with you after your screening.",
+      "Hydration IV (Lactated Ringer's) is our essential IV: fluids and electrolytes. Athlete Recovery IV adds amino acids and B12 for training days, Energy IV is a blend of amino acids, vitamins and minerals for busy weeks, and Myers IV is the classic Myers cocktail. Not sure? Shary talks it through with you after your screening.",
   },
   {
     id: "faq-svc-myers",
     placement: "services",
     question: "What's in a Myers cocktail IV?",
     answer:
-      "The classic Myers cocktail blend of B vitamins, vitamin C, magnesium and calcium, given with IV fluids. It's $199, or $240 with chromium.",
+      "The classic Myers cocktail blend of B vitamins, vitamin C, magnesium and calcium, given with IV fluids. Myers IV is $199, and Myers with Chromium IV is $240.",
   },
   {
     id: "faq-svc-at-home",
@@ -367,14 +441,14 @@ export const faqs: Faq[] = [
     placement: "services",
     question: "Can I get a B12 shot without an IV?",
     answer:
-      "Yes. Vitamin B12 ($45), B-complex ($40) and glutathione ($50) shots can be booked on their own or added to an IV visit. Every injection still starts with a health screening.",
+      "B12 IM Injection ($40), B-Complex IM Injection ($45) and Glutathione IM Injection ($50) are on our menu. Booking for injection-only appointments opens soon. Every injection starts with a health screening.",
   },
   {
     id: "faq-svc-add-ins",
     placement: "services",
     question: "Can I add vitamins to my IV drip?",
     answer:
-      "Yes. You can add B-complex ($35), vitamin B12 ($40) or glutathione ($45) to any drip. Your nurse may suggest other add-ins based on your assessment.",
+      "Yes. You can add B12 IV Add-On ($35), B-Complex IV Add-On ($40) or Glutathione IV Add-On ($45) to any IV. They're added to your IV, not given as separate shots. Your nurse may suggest other add-ins based on your assessment.",
   },
   {
     id: "faq-svc-screening",
@@ -418,23 +492,27 @@ export const pageText: Record<PageKey, PageText> = {
     sections: {
       iv: {
         heading: "IV hydration drip menu",
-        text: "Five mobile IV drips, given and monitored by Shary, a registered nurse, at your home, office or event.",
+        text: "Mobile IV drips, given and monitored by Shary, a registered nurse, at your home, office or event.",
       },
       consultation: {
         heading: "Personalized consultations",
         text: "Some services are personalized and start with a screening consultation. Talk through your goals, health history and available services directly with your nurse.",
       },
       boost: {
-        heading: "Vitamin add-ins for your IV drip",
-        text: "Add a vitamin to any IV. Your nurse may suggest other add-ins based on your assessment.",
+        heading: "IV nutrient add-ons",
+        text: "Added to your IV, not given as separate shots. Your nurse may suggest other add-ins based on your assessment.",
       },
       vitamin: {
-        heading: "B12 shots and vitamin injections",
-        text: "A quick vitamin shot, on its own or alongside your IV drip.",
+        heading: "IM injections",
+        text: "A quick vitamin shot. Booking for injection-only appointments opens soon.",
+      },
+      packages: {
+        heading: "Wellness packages",
+        text: "Restorative, IV and B12 packages, each booked as a single visit.",
       },
       addons: {
-        heading: "Red light and aromatherapy add-ons",
-        text: "Red light and aromatherapy can be added to an IV appointment after you book.",
+        heading: "Restorative services and enhancements",
+        text: "Book them on their own, or add them to an appointment at the lower enhancement price. Paid at your visit.",
       },
       groups: {
         heading: "Group IV therapy for events and workplaces",
@@ -448,10 +526,29 @@ export const pageText: Record<PageKey, PageText> = {
       how: { heading: "How in-home IV appointments work" },
     },
   },
-  addons: {
-    heading: "Wellness add-ons for your IV visit",
+  packages: {
+    heading: "Wellness packages",
     intro:
-      "Make it a ritual. Optional extras for an IV appointment you've already booked. Choose them here, then pay at your visit or now by card.",
+      "Restorative, IV and B12 wellness packages, each a single visit at your home, office or event. One-time bookings only: no memberships or prepaid series.",
+    sections: {
+      restorative: {
+        heading: "Restorative packages",
+        text: "Red light, compression boots and aromatherapy. No IVs or injections, so you book directly with Shary.",
+      },
+      iv: {
+        heading: "IV wellness packages",
+        text: "An IV plus restorative services in one visit. You book and pay for the IV on our secure booking page, and pay the rest at your visit.",
+      },
+      injection: {
+        heading: "B12 wellness packages",
+        text: "A B12 IM Injection with restorative services in one visit.",
+      },
+    },
+  },
+  addons: {
+    heading: "Restorative enhancements for your visit",
+    intro:
+      "Make it a ritual. Optional extras for an appointment you've already booked, at enhancement prices. Choose them here, then pay at your visit.",
     sections: {},
   },
   events: {
@@ -505,7 +602,7 @@ export const pageText: Record<PageKey, PageText> = {
   book: {
     heading: "Book your mobile IV appointment",
     intro:
-      "Takes 30 seconds and you get your booking link right away. Next, you'll pick your services and a time, then complete a short health screening and payment on our secure booking page.",
+      "Takes 30 seconds and you get your booking link right away. Next, you'll pick your IV and a time, then complete a short health screening and payment on our secure booking page.",
     sections: {},
   },
   join: {

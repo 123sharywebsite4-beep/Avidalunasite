@@ -8,6 +8,7 @@ export const MAILCHIMP_HOST = "https://avidaluna.us22.list-manage.com";
 export const PUBLIC_PAGES = [
   "/",
   "/services",
+  "/packages",
   "/add-ons",
   "/events",
   "/wellness-education",

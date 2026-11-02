@@ -519,7 +519,7 @@ footer .border-t {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6f7f68;
+  color: #5c6b55; /* 5.2:1 on the card ivory (was #6f7f68, 3.9:1) */
 }
 .iv-card-option {
   margin-top: 4px;
@@ -1057,4 +1057,116 @@ footer .border-cream\/20 {
 footer .rounded-lg.bg-cream {
   background: transparent;
   padding: 0;
+}
+
+/* Package cards (/packages, /services): same quiet card language as the IV cards, no photo. */
+.pkg-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 24px 22px;
+  background: var(--iv-ivory);
+  border: 1px solid var(--iv-border);
+  border-radius: 6px;
+}
+.pkg-card h3 {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--iv-forest);
+}
+.pkg-card-includes {
+  flex: 1;
+  margin-top: 12px;
+  padding-left: 1.1rem;
+  list-style: disc;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+.pkg-card-price {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--iv-border);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--iv-forest);
+}
+.pkg-card-sub,
+.pkg-card-note {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--color-muted);
+}
+.pkg-card-note {
+  margin-top: 10px;
+}
+.pkg-card .btn {
+  margin-top: 16px;
+  align-self: flex-start;
+}
+.pkg-soon {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 0 16px;
+  border: 1px dashed var(--iv-sage);
+  border-radius: var(--radius-control);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.price-split {
+  margin-top: 16px;
+  border-top: 1px solid var(--color-line);
+}
+.price-split > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-line);
+}
+.price-split dt {
+  color: var(--color-muted);
+}
+.price-split dd {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.price-split .price-split-total dt,
+.price-split .price-split-total dd {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+.choice-list {
+  display: grid;
+  gap: 10px;
+}
+.choice-list label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-cream);
+  cursor: pointer;
+}
+.choice-list label:has(input:checked) {
+  border-color: var(--color-olive);
+  background: #f3f5ee;
+}
+.choice-list input {
+  margin-top: 5px;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  accent-color: var(--color-olive);
+}
+.choice-list .choice-price {
+  margin-left: auto;
+  font-weight: 600;
+  white-space: nowrap;
 }
