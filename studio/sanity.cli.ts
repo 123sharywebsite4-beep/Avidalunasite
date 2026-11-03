@@ -7,4 +7,8 @@ export default defineCliConfig({
   },
   // Hosting choice is decided at Checkpoint 1 (avidaluna.sanity.studio or /studio on the site).
   studioHost: "avidaluna",
+  deployment: {
+    // Deployed Studio at https://avidaluna.sanity.studio
+    appId: "mmj55cnv4me6t1bb3z9pw0vp",
+  },
 });

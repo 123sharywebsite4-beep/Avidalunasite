@@ -7,7 +7,7 @@
     "dev": "sanity dev",
     "build": "sanity build",
     "deploy": "sanity deploy",
-    "seed": "sanity dataset import seed/seed.ndjson production --replace"
+    "seed": "sanity dataset import seed/seed.ndjson --dataset production --replace"
   },
   "dependencies": {
     "@sanity/vision": "6.20.0",
