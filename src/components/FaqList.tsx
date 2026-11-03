@@ -1,4 +1,5 @@
 import type { Faq } from "@/lib/types";
+import { FaqAnswer } from "./FaqAnswer";
 import { PlusIcon } from "./Icons";
 import { Todo } from "./Todo";
 
@@ -14,7 +15,7 @@ export function FaqList({ faqs, headingLevel = "h3" }: { faqs: Faq[]; headingLev
             <PlusIcon className="chev size-5 shrink-0 text-olive" />
           </summary>
           <div className="prose-width pb-5">
-            <p>{f.answer}</p>
+            <FaqAnswer text={f.answer} />
             {f.todo ? <Todo className="mt-3">{f.todo}</Todo> : null}
           </div>
         </details>

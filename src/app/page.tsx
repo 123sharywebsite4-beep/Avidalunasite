@@ -11,6 +11,7 @@ import {
 } from "@/lib/content";
 import { pageMetadata } from "@/lib/seo";
 import { serviceAreas } from "@content/fallback";
+import { FaqAnswer } from "@/components/FaqAnswer";
 import "./home.css";
 
 export const revalidate = 3600;
@@ -349,7 +350,7 @@ export default async function HomePage() {
                 <h3>{f.question}</h3>
                 <span aria-hidden>+</span>
               </summary>
-              <p>{f.answer}</p>
+              <FaqAnswer text={f.answer} />
             </details>
           ))}
         </div>
