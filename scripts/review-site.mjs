@@ -77,6 +77,14 @@ try {
       reducedMotion: "reduce",
     });
     const page = await context.newPage();
+    // Never reach the real Mailchimp or Netlify Forms from a review run.
+    await context.route("https://*.list-manage.com/**", (route) => {
+      const c = new URL(route.request().url()).searchParams.get("c");
+      return route.fulfill({ contentType: "application/javascript", body: `${c}({"result":"success","msg":"ok"})` });
+    });
+    await context.route("**/__forms.html", (route) =>
+      route.request().method() === "POST" ? route.fulfill({ status: 200, body: "ok" }) : route.continue(),
+    );
     page.on("pageerror", (e) => issues.push(`${device}: ${e.message}`));
     for (const [name, path] of routes) {
       await page.goto("http://localhost:3200" + path, {
@@ -100,7 +108,7 @@ try {
     await page.getByLabel("Email", { exact: true }).fill("ana@example.com");
     await page.getByRole("checkbox").check();
     await page.waitForTimeout(2700);
-    await page.getByRole("button", { name: "Join the list" }).click();
+    await page.getByRole("button", { name: "Send me my free copy" }).click();
     await page.getByTestId("join-success").waitFor();
     await capture(page, "join-success", device);
     await page.goto("http://localhost:3200/add-ons");
@@ -149,24 +157,14 @@ try {
     await page
       .getByLabel("Your message", { exact: false })
       .fill("Please let me know about appointment locations.");
-    await page.route("**/api/contact", (route) =>
-      route.fulfill({
-        status: 503,
-        contentType: "application/json",
-        body: JSON.stringify({
-          ok: false,
-          error:
-            "We could not send your message. Please try again or email Shary.",
-        }),
-      }),
-    );
+    await page.route("**/__forms.html", (route) => route.fulfill({ status: 500, body: "error" }));
     await page.waitForTimeout(2700);
     await page
       .getByRole("button", { name: "Send message", exact: true })
       .click();
     await page.getByRole("alert").waitFor();
     await capture(page, "contact-error-simulated", device);
-    await page.unroute("**/api/contact");
+    await page.unroute("**/__forms.html");
     await page.goto("http://localhost:3200/events#request");
     await page
       .getByRole("button", { name: "Send request", exact: true })

@@ -141,7 +141,7 @@ Where it lives: this copy is in `/content/fallback.ts` (what the site shows with
 3. ⚠️ **Is IV therapy right for me?** Not everyone is a good fit for IV therapy, and that's why every appointment starts with a health screening. If anything in your screening or at your visit suggests an IV isn't right for you, Shary will tell you and suggest you speak with your doctor. TODO: eligibility wording and any groups she doesn't serve (for example, minors).
 4. ⚠️ **Who places my IV, and how is safety handled?** Shary, a registered nurse with more than 17 years of nursing experience, places and monitors every IV herself. She uses sterile, single-use supplies and stays with you for the whole visit. TODO: confirm the safety details (supplies, monitoring, medical director oversight through Hydreight).
 5. ⚠️ **What happens during my appointment?** Shary arrives at your location, reviews your screening with you, and checks your vital signs. She then places your IV and stays with you while it runs. Most of the visit is simply time to sit back and rest. TODO: confirm the visit steps and the typical length.
-6. **How do I book?** Start on our Book page. After you share your name and email, you'll continue to our secure booking page on Hydreight to choose your drip and time.
+6. **How do I book?** Start on our Book page. After you share your name and email, you'll continue to our secure booking page on Hydreight to choose your drip and time and complete your screening. Once Shary reviews your screening, you'll be asked to get cleared by our medical provider before your visit.
 7. **Where do you travel, and is there a travel fee?** Shary is based in Lakewood Ranch, FL and comes to you. TODO: service area and travel fee.
 8. **How long does a visit take?** Visit length depends on the drip and any add-ons you choose. TODO: typical length.
 9. **Who comes to my appointment?** Shary, a registered nurse, comes to your appointment herself. TODO: confirm whether anyone else ever does.
@@ -164,7 +164,7 @@ Where it lives: this copy is in `/content/fallback.ts` (what the site shows with
 - Eyebrow: Book · H1: **Book an appointment**. Intro: Takes 30 seconds. Next, you'll choose your service and time and complete a short health screening on our secure booking page.
 - Steps: 1 Your details · 2 Service, time and screening · 3 Your nurse comes to you
 - Fields: First name · Last name · Email · Phone (optional) · ☐ Yes, email me Avida Luna news and offers. Unsubscribe anytime. · **Continue**
-- Under the button: Please don't include medical information here. Health screening happens privately on our secure booking page. We only email you if you tick the box. See our privacy notice.
+- Under the button: Please don't include medical information here. Health screening happens privately on our secure booking page. We only email you if you check the box. See our privacy notice.
 - Success: **Thank you. Next, choose your service and time.** Our secure booking page (powered by Hydreight) opens in a new tab. That's where you pick your service, choose a time and complete a short screening. → **Continue to secure booking** + the plain link. "After you book, you can add an optional wellness add-on like red light or aromatherapy. See add-ons"
 
 ## Event sign-up `/join` (QR)
@@ -175,7 +175,7 @@ Where it lives: this copy is in `/content/fallback.ts` (what the site shows with
 
 ## Privacy and Terms
 
-Both are stubs marked "Draft, needs review by a lawyer." See the pages for the text.
+Both are stubs marked "Draft, needs review by a lawyer." Shary edits them in Sanity under **Legal pages** (the draft note has its own on/off switch). Until a page is published there, the site shows the default text in `content/legal.ts`, which also pre-fills the Studio the first time she opens each page.
 
 ## SEO titles and descriptions
 
@@ -217,10 +217,10 @@ I'm not a lawyer and neither is the developer. Every item here needs a human che
 
 ## Decisions taken while building (for Abe)
 
-1. **Contacts who don't opt in are not stored in Mailchimp at all.** Mailchimp's free plan is reportedly capped at 250 contacts (and non-subscribed contacts count toward it), and storing them buys nothing because we can't market to them. Easy to change in `src/app/api/intake/route.ts`.
-2. **Form notification email: Resend (free tier: 3,000 emails/month, 100/day).** One server route handles validation, spam checks, the email to Shary and the Mailchimp opt-in together. Netlify Forms would need a separate static form for detection, and the opted-in Mailchimp step would still need a function.
+1. **Everyone who asks for a booking link goes into Mailchimp**, with `OPTIN` = `yes` or `no` so Shary's automation can send the one booking-link note and newsletters go only to `OPTIN` = `yes`. Sent from the browser through her public signup form (no API key). See `src/lib/mailchimp-signup.ts`.
+2. **Form email: Netlify Forms.** The contact form, group-event request and "Pay at my visit" are emailed to Shary by Netlify. No email service and no access to her inbox needed.
 3. **Studio hosting: `avidaluna.sanity.studio`** (Sanity's free hosting). That keeps the website bundle small, keeps the Studio out of the site's security policy, and doesn't use Netlify credits.
-4. **Welcome email risk:** Mailchimp's free plan reportedly no longer includes automations (2026). If so, the `booking-intake` welcome automation can't run on her free plan. Option: send that one email from `/api/intake` through Resend (transactional, includes the Hydreight and add-ons links). Not built; your call.
+4. **Booking-link email needs a paid Mailchimp plan:** the free plan reportedly has no automations (2026), so the `SOURCE` = `booking` automation needs a plan such as Essentials.
 5. **Checkout cancel URL** goes to `/add-ons/cancel` (the "No charge was made" page with the selection restored), not straight back to `/add-ons`.
 6. **Phone collection is off in Stripe Checkout**, to collect less personal data. The only custom field is "Appointment date".
 7. **Next.js 16 "cache components" mode is off.** The site uses the long-established tagged cache plus on-demand revalidation, which Netlify's adapter supports well.

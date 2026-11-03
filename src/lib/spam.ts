@@ -1,13 +1,10 @@
 import "server-only";
 
-// Spam protection with no third-party scripts:
-//  1. a honeypot field real people never see or fill,
-//  2. a minimum time between opening the form and sending it,
-//  3. a per-IP (and, where it matters, per-email) rate limit.
-// The rate limit lives in memory, so it's per server instance. That's enough to
-// slow down a script hammering one form; it is not a hard global limit.
+// A per-IP rate limit for the site's own API (add-on checkout). The forms themselves go to
+// Netlify Forms (which filters spam) and Mailchimp's signup form, each with a honeypot.
+// The limit lives in memory, so it's per server instance. That's enough to slow down a
+// script hammering one route; it is not a hard global limit.
 
-const MIN_FILL_MS = 2500;
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 8;
 
@@ -23,11 +20,7 @@ export function clientIp(req: Request): string {
 
 /** Returns true when this IP has sent too many requests to this route recently. */
 export function isRateLimited(req: Request, route: string, max = MAX_PER_WINDOW): boolean {
-  return isKeyRateLimited(`${route}:${clientIp(req)}`, max);
-}
-
-/** Same limit for any key, e.g. one email address across IPs. */
-export function isKeyRateLimited(key: string, max = MAX_PER_WINDOW): boolean {
+  const key = `${route}:${clientIp(req)}`;
   const now = Date.now();
   const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
   recent.push(now);
@@ -37,11 +30,4 @@ export function isKeyRateLimited(key: string, max = MAX_PER_WINDOW): boolean {
     for (const [k, v] of hits) if (!v.some((t) => now - t < WINDOW_MS)) hits.delete(k);
   }
   return recent.length > max;
-}
-
-/** True when the submission looks automated. Callers answer "ok" without doing anything. */
-export function looksLikeSpam({ website, startedAt }: { website?: string; startedAt: number }): boolean {
-  if (website) return true;
-  const elapsed = Date.now() - startedAt;
-  return !Number.isFinite(elapsed) || elapsed < MIN_FILL_MS || elapsed > 24 * 60 * 60 * 1000;
 }

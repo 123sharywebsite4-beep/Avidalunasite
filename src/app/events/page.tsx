@@ -5,7 +5,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { PageHero } from "@/components/PageHero";
 import { Todo } from "@/components/Todo";
 import { BRAND_NAME, SITE_URL } from "@/lib/constants";
-import { getPageText, getUpcomingEvents, todayInFlorida } from "@/lib/content";
+import { getPageText, getSiteSettings, getUpcomingEvents, todayInFlorida } from "@/lib/content";
 import { floridaIso, formatEventDate, formatTime } from "@/lib/format";
 import { groupEventsSchema } from "@/lib/schema";
 import { pageMetadata } from "@/lib/seo";
@@ -51,7 +51,7 @@ function eventSchema(e: EventItem) {
 }
 
 export default async function EventsPage() {
-  const [text, events] = await Promise.all([getPageText("events"), getUpcomingEvents()]);
+  const [text, events, settings] = await Promise.all([getPageText("events"), getUpcomingEvents(), getSiteSettings()]);
   const s = text.sections;
 
   return (
@@ -141,7 +141,7 @@ export default async function EventsPage() {
           </h2>
           <p className="mt-2">{s.form?.text}</p>
           <div className="mt-6">
-            <GroupRequestForm minDate={todayInFlorida()} />
+            <GroupRequestForm minDate={todayInFlorida()} contactEmail={settings.email} />
           </div>
         </div>
       </section>

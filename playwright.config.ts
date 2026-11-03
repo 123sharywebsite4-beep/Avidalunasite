@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// The tests build and start the site against a local mock of Stripe, Mailchimp and Resend.
-// No real accounts or keys are needed. Set PW_CHROMIUM_PATH to use a pre-installed Chromium.
+// The tests build and start the site against a local mock of Stripe. Mailchimp and Netlify
+// Forms are mocked in the browser (tests/helpers.ts). No real accounts or keys are needed. Set PW_CHROMIUM_PATH to use a pre-installed Chromium.
 const PORT = 3200;
 const MOCK = "http://localhost:3299";
 
@@ -9,15 +9,10 @@ export const testEnv = {
   NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`,
   STRIPE_SECRET_KEY: "sk_test_mock",
   STRIPE_API_BASE: MOCK,
-  MAILCHIMP_API_KEY: "mock-us1",
-  MAILCHIMP_SERVER_PREFIX: "us1",
-  MAILCHIMP_AUDIENCE_ID: "mockaudience",
-  MAILCHIMP_API_BASE: `${MOCK}/mailchimp/3.0`,
-  RESEND_API_KEY: "re_mock",
-  RESEND_API_BASE: `${MOCK}/resend`,
-  FOLLOWUP_FROM: "Avida Luna Wellness <hello@avidaluna.com>",
   STRIPE_WEBHOOK_SECRET: "whsec_test_mock",
   HYDREIGHT_HOOK_SECRET: "test-hook-secret",
+  // Shows the free-guide signup (off by default; Shary turns it on in Studio).
+  LEAD_MAGNET_TEST_ENABLED: "1",
 };
 
 export default defineConfig({

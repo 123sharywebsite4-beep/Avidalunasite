@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { NO_MEDICAL_INFO_NOTE } from "@/lib/constants";
+import { HONEYPOT } from "./submit";
 
 type Common = {
   name: string;
@@ -51,7 +52,7 @@ export function TextField({
   defaultValue,
   ...p
 }: Common & {
-  type?: "text" | "email" | "tel" | "date";
+  type?: "text" | "email" | "tel" | "date" | "datetime-local";
   autoComplete?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   max?: string;
@@ -176,13 +177,13 @@ export function CheckboxField({ name, label, required, error }: Omit<Common, "hi
   );
 }
 
-/** Honeypot: hidden from people and screen readers, tempting to bots. */
+/** Honeypot (Netlify's bot-field): hidden from people and screen readers, tempting to bots. */
 export function Honeypot() {
   return (
     <div aria-hidden className="absolute -left-[10000px] top-auto size-px overflow-hidden">
       <label>
         Website
-        <input type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
+        <input type="text" name={HONEYPOT} tabIndex={-1} autoComplete="off" defaultValue="" />
       </label>
     </div>
   );

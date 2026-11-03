@@ -6,9 +6,11 @@ import { IvServiceCard } from "@/components/Cards";
 import { FaqList } from "@/components/FaqList";
 import { ArrowRightIcon } from "@/components/Icons";
 import { JsonLd } from "@/components/JsonLd";
+import { IvTiming, IvTravel } from "@/components/PackageGroups";
 import { PageHero } from "@/components/PageHero";
-import { getAddOns, getFaqs, getPageText, getServices } from "@/lib/content";
+import { getAddOns, getFaqs, getPackages, getPageText, getServices, getSiteSettings } from "@/lib/content";
 import { formatDuration, formatPrice } from "@/lib/format";
+import { enhancementPrice, includedLines } from "@/lib/packages";
 import { faqSchema, servicesSchema } from "@/lib/schema";
 import { pageMetadata } from "@/lib/seo";
 import type { Service } from "@/lib/types";
@@ -24,11 +26,13 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function ServicesPage() {
-  const [text, services, addOns, faqs] = await Promise.all([
+  const [text, services, addOns, faqs, packages, settings] = await Promise.all([
     getPageText("services"),
     getServices(),
     getAddOns(),
     getFaqs("services"),
+    getPackages(),
+    getSiteSettings(),
   ]);
   const s = text.sections;
   const drips = services.filter((x) => x.category === "iv");
@@ -37,10 +41,11 @@ export default async function ServicesPage() {
   const extras = addOns.filter((a) => !a.todo);
   const jumpLinks = [
     { href: "#iv-drips", label: "IV drips", show: drips.length > 0 },
+    { href: "#packages", label: "Packages", show: packages.length > 0 },
     { href: "#boosts", label: "Drip add-ins", show: boosts.length > 0 },
     { href: "#injections", label: "Injections", show: vitamins.length > 0 },
     { href: "#consultation", label: "Consultations", show: true },
-    { href: "#add-ons", label: "Wellness add-ons", show: true },
+    { href: "#add-ons", label: "Restorative", show: true },
     { href: "#groups", label: "Groups", show: true },
     { href: "#areas", label: "Areas", show: true },
     { href: "#questions", label: "Questions", show: faqs.length > 0 },
@@ -88,6 +93,8 @@ export default async function ServicesPage() {
             right for everyone. Availability depends on your location and
             scheduling.
           </p>
+          <IvTiming settings={settings} />
+          <IvTravel settings={settings} />
           <p>
             {drips.some((service) => service.todo)
               ? "Starting prices and menu details are pending Shary’s confirmation. "
@@ -96,6 +103,38 @@ export default async function ServicesPage() {
           </p>
         </div>
       </section>
+
+      {packages.length ? (
+        <section
+          id="packages"
+          className="container-page scroll-mt-32 pb-12 md:pb-16"
+          aria-labelledby="packages-heading"
+        >
+          <div className="price-panel">
+            <div>
+              <p className="eyebrow">One visit, one price</p>
+              <h2 id="packages-heading" className="mt-2 text-3xl md:text-4xl">
+                {s.packages?.heading}
+              </h2>
+              {s.packages?.text ? <p className="mt-3 text-muted">{s.packages.text}</p> : null}
+              <Link href="/packages" className="btn btn-outline mt-6">
+                See all packages <ArrowRightIcon />
+              </Link>
+            </div>
+            <ul className="price-list">
+              {packages.map((p) => (
+                <li key={p.id}>
+                  <div>
+                    <h3>{p.name}</h3>
+                    <p>{includedLines(p).join(" · ")}</p>
+                  </div>
+                  <p className="price-list-price">{formatPrice(p.price)}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
 
       {boosts.length ? (
         <section
@@ -133,9 +172,9 @@ export default async function ServicesPage() {
               {s.vitamin?.text ? (
                 <p className="mt-3 text-muted">{s.vitamin.text}</p>
               ) : null}
-              <Link href="/book" className="btn btn-outline mt-6">
-                Book an injection <ArrowRightIcon />
-              </Link>
+              <p className="pkg-soon mt-6" data-testid="injection-booking-soon">
+                Booking opens soon
+              </p>
             </div>
             <PriceList items={vitamins} />
           </div>
@@ -171,14 +210,22 @@ export default async function ServicesPage() {
       >
         <div className="price-panel">
           <div>
-            <p className="eyebrow">A little extra</p>
+            <p className="eyebrow">Restorative · non-medical</p>
             <h2 id="addons-heading" className="mt-2 text-3xl md:text-4xl">
               {s.addons?.heading}
             </h2>
             <p className="mt-3 text-muted">{s.addons?.text}</p>
-            <Link href="/add-ons" className="btn btn-outline mt-6">
-              See add-ons <ArrowRightIcon />
-            </Link>
+            <p className="mt-3 text-[0.9375rem] text-muted">
+              Restorative-only visits have a {formatPrice(settings.travelFee)} travel fee, once per appointment.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/book?restorative=1" className="btn btn-outline">
+                Request a restorative visit <ArrowRightIcon />
+              </Link>
+              <Link href="/add-ons" className="btn btn-outline">
+                Add to a booked visit
+              </Link>
+            </div>
           </div>
           {extras.length ? (
             <ul className="price-list">
@@ -190,6 +237,9 @@ export default async function ServicesPage() {
                   </div>
                   <p className="price-list-price">
                     {formatPrice(a.price)}
+                    <small>
+                      {formatPrice(enhancementPrice(a))} {a.kind === "product" ? "with a service or package" : "as an enhancement"}
+                    </small>
                     {a.durationMinutes ? (
                       <small>{formatDuration(a.durationMinutes)}</small>
                     ) : null}

@@ -1,6 +1,8 @@
 import "server-only";
 import * as fallback from "@content/fallback";
+import { type LegalBlock, type LegalPageKey, legalDefaults } from "@content/legal";
 import { CONTACT_EMAIL } from "./constants";
+import { type PackageSource, resolvePackages } from "./packages";
 import { cdnClient, liveClient } from "./sanity";
 import type {
   AddOn,
@@ -13,8 +15,10 @@ import type {
   PageText,
   RichBlock,
   Service,
+  LeadMagnetContent,
   SiteSettings,
   Testimonial,
+  WellnessPackage,
 } from "./types";
 
 // Every public read is tagged with its document type, so the Sanity webhook
@@ -63,18 +67,40 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     instagram?: string;
     facebook?: string;
     footerNote?: string;
+    travelFee?: number;
+    travelIncludedMinutes?: number;
+    ivInfusionTime?: string;
+    ivAppointmentTime?: string;
+    leadMagnet?: Partial<LeadMagnetContent>;
   } | null>(`*[_id == "siteSettings"][0]`, {}, ["siteSettings"]);
-  const base = { ...fallback.siteSettings, email: CONTACT_EMAIL };
+  const base = {
+    ...fallback.siteSettings,
+    email: CONTACT_EMAIL,
+    // Test-only switch (Playwright runs without Sanity). Never set it on Netlify.
+    leadMagnet: { ...fallback.siteSettings.leadMagnet, enabled: process.env.LEAD_MAGNET_TEST_ENABLED === "1" },
+  };
   if (!data) return base;
+  const lead = data.leadMagnet ?? {};
   const phoneDisplay = data.phone || base.phoneDisplay;
   return {
     phoneDisplay,
     phoneTel: `tel:${phoneDisplay.replace(/[^\d+]/g, "")}`,
     email: data.email || base.email,
     serviceArea: data.serviceArea || base.serviceArea,
-    instagram: data.instagram || null,
-    facebook: data.facebook || null,
+    instagram: data.instagram || base.instagram,
+    facebook: data.facebook || base.facebook,
     footerNote: data.footerNote || base.footerNote,
+    travelFee: typeof data.travelFee === "number" ? data.travelFee : base.travelFee,
+    travelIncludedMinutes: data.travelIncludedMinutes || base.travelIncludedMinutes,
+    ivInfusionTime: data.ivInfusionTime || base.ivInfusionTime,
+    ivAppointmentTime: data.ivAppointmentTime || base.ivAppointmentTime,
+    leadMagnet: {
+      enabled: lead.enabled === true,
+      heading: lead.heading?.trim() || base.leadMagnet.heading,
+      description: lead.description?.trim() || base.leadMagnet.description,
+      buttonLabel: lead.buttonLabel?.trim() || base.leadMagnet.buttonLabel,
+      successMessage: lead.successMessage?.trim() || base.leadMagnet.successMessage,
+    },
   };
 }
 
@@ -93,8 +119,12 @@ export async function getServices(): Promise<Service[]> {
 }
 
 const addOnProjection = `{
-  "id": _id, name, description, "durationMinutes": duration, price, ${imageProjection}
+  "id": _id, name, description, "durationMinutes": duration, price, enhancementPrice, "kind": coalesce(kind, "service"), ${imageProjection}
 }`;
+
+function normalizeAddOn(a: AddOn): AddOn {
+  return { ...a, enhancementPrice: a.enhancementPrice ?? null, image: normalizeImage(a.image) };
+}
 
 export async function getAddOns(): Promise<AddOn[]> {
   const data = await fetchTagged<AddOn[]>(
@@ -103,7 +133,7 @@ export async function getAddOns(): Promise<AddOn[]> {
     ["addon"],
   );
   if (!data) return fallback.addOns;
-  return data.map((a) => ({ ...a, image: normalizeImage(a.image) }));
+  return data.map(normalizeAddOn);
 }
 
 /**
@@ -118,7 +148,29 @@ export async function getAddOnsForCheckout(ids: string[]): Promise<AddOn[]> {
     { ids },
     { cache: "no-store" },
   );
-  return data.map((a) => ({ ...a, image: normalizeImage(a.image) }));
+  return data.map(normalizeAddOn);
+}
+
+/** Packages, with their items resolved against the current services and add-ons. */
+export async function getPackages(): Promise<WellnessPackage[]> {
+  const [data, services, addOns] = await Promise.all([
+    fetchTagged<PackageSource[]>(
+      `*[_type == "package" && visible != false && defined(slug.current)] | order(order asc, name asc){
+        "id": _id, "slug": slug.current, name, type, price,
+        "includes": includes[]._ref, "ivChoices": coalesce(ivChoices[]._ref, []),
+        "bookingOpen": coalesce(bookingOpen, true)
+      }`,
+      {},
+      ["package"],
+    ),
+    getServices(),
+    getAddOns(),
+  ]);
+  return resolvePackages(data ?? fallback.packages, services, addOns);
+}
+
+export async function getPackage(slug: string): Promise<WellnessPackage | null> {
+  return (await getPackages()).find((p) => p.slug === slug) ?? null;
 }
 
 export async function getUpcomingEvents(): Promise<EventItem[]> {
@@ -226,6 +278,31 @@ export async function getPageText(page: PageKey): Promise<PageText> {
     };
   }
   return { heading: data.heading || base.heading, intro: data.intro || base.intro, sections };
+}
+
+export type LegalPage = {
+  title: string;
+  lastUpdated: string | null; // YYYY-MM-DD
+  showDraftNote: boolean;
+  body: LegalBlock[];
+};
+
+/** Terms of use or Privacy notice. Until Shary publishes the page in Sanity, the default text shows. */
+export async function getLegalPage(page: LegalPageKey): Promise<LegalPage> {
+  const data = await fetchTagged<{
+    title?: string;
+    lastUpdated?: string;
+    showDraftNote?: boolean;
+    body?: LegalBlock[];
+  } | null>(`*[_id == $id][0]{ title, lastUpdated, showDraftNote, body }`, { id: `legalPage-${page}` }, ["legalPage"]);
+  const { email } = await getSiteSettings();
+  const base = legalDefaults(email)[page];
+  return {
+    title: data?.title || base.title,
+    lastUpdated: data?.lastUpdated || null,
+    showDraftNote: data?.showDraftNote ?? true,
+    body: data?.body?.length ? data.body : base.body,
+  };
 }
 
 export const credentials = fallback.credentials;

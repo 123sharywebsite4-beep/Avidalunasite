@@ -22,7 +22,7 @@ export type PaidSummary = {
 export interface AddOnPaymentProvider {
   createCheckout(
     lines: PricedLine[],
-    opts: { email?: string; successUrl: string; cancelUrl: string; followUpId?: string },
+    opts: { email?: string; successUrl: string; cancelUrl: string },
   ): Promise<CheckoutSession>;
   getPaidSummary(sessionId: string): Promise<PaidSummary | null>;
 }

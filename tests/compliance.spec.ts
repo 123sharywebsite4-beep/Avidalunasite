@@ -1,6 +1,5 @@
-import { expect, test } from "@playwright/test";
-import { COMPLIANCE_WORDS, findComplianceWord } from "../studio/lib/compliance";
-import { PUBLIC_PAGES } from "./helpers";
+import { ALLOWED_SERVICE_NAMES, COMPLIANCE_WORDS, findComplianceWord } from "../studio/lib/compliance";
+import { expect, PUBLIC_PAGES, test } from "./helpers";
 
 test.describe("health wording", () => {
   for (const path of PUBLIC_PAGES) {
@@ -18,6 +17,15 @@ test.describe("health wording", () => {
     });
   }
 
+  test("only Shary's two approved service names are allowed; the words stay banned elsewhere", () => {
+    expect([...ALLOWED_SERVICE_NAMES]).toEqual(["Detox/Hangover IV", "Migraine IV"]);
+    expect(findComplianceWord("Detox/Hangover IV is $190. Migraine IV is $190.")).toBeNull();
+    for (const text of ["A gentle detox", "Hangover help", "migraine iv", "Migraine relief", "Detox IV", "Hangover IV"]) {
+      expect(findComplianceWord(text), text).not.toBeNull();
+    }
+    expect(findComplianceWord("Migraine IV to treat you")).toBe("treat");
+  });
+
   test("the word list covers the brief's banned words", () => {
     for (const w of ["cure", "treat", "heal", "prevent", "detox", "detoxification", "immunity", "migraine",
       "inflammation", "blood pressure", "anxiety", "disease", "guaranteed"]) {
@@ -27,7 +35,7 @@ test.describe("health wording", () => {
 });
 
 test.describe("forms collect no health information", () => {
-  const formPages = ["/book", "/join", "/contact", "/events"];
+  const formPages = ["/book", "/book?restorative=1", "/join", "/contact", "/events"];
   for (const path of formPages) {
     test(`${path}: every text box has the no-medical-info line and no health fields exist`, async ({ page }) => {
       await page.goto(path);
@@ -76,7 +84,7 @@ test.describe("SEO and privacy basics", () => {
 
   test("every page has a unique title and a canonical URL", async ({ page }) => {
     const titles = new Set<string>();
-    for (const path of ["/", "/services", "/add-ons", "/events", "/about", "/faq", "/contact", "/book"]) {
+    for (const path of ["/", "/services", "/packages", "/add-ons", "/events", "/about", "/faq", "/contact", "/book"]) {
       await page.goto(path);
       const title = await page.title();
       expect(titles.has(title), `duplicate title ${title}`).toBe(false);
@@ -100,7 +108,7 @@ test.describe("SEO and privacy basics", () => {
   });
 
   test("titles fit in 60 characters and descriptions in 160", async ({ page }) => {
-    for (const path of ["/", "/services", "/add-ons", "/events", "/wellness-education", "/about", "/faq", "/contact", "/book", "/join"]) {
+    for (const path of ["/", "/services", "/packages", "/add-ons", "/events", "/wellness-education", "/about", "/faq", "/contact", "/book", "/join"]) {
       await page.goto(path);
       expect((await page.title()).length, `title on ${path}`).toBeLessThanOrEqual(60);
       const meta = (await page.locator('meta[name="description"]').getAttribute("content")) ?? "";
@@ -131,6 +139,17 @@ test.describe("SEO and privacy basics", () => {
   test("security headers are set", async ({ request }) => {
     const h = (await request.get("/")).headers();
     expect(h["content-security-policy"]).toContain("default-src 'self'");
+    // Mailchimp's JSONP reply is the only outside script allowed, and nothing else changed.
+    const csp = Object.fromEntries(
+      h["content-security-policy"].split(";").map((d) => {
+        const [name, ...values] = d.trim().split(/\s+/);
+        return [name, values.join(" ")];
+      }),
+    );
+    expect(csp["script-src"]).toBe("'self' 'unsafe-inline' https://avidaluna.us22.list-manage.com");
+    expect(csp["connect-src"]).toBe("'self'");
+    expect(csp["form-action"]).toBe("'self' https://checkout.stripe.com");
+    expect(csp["frame-src"]).toBe("'none'");
     expect(h["strict-transport-security"]).toContain("max-age=");
     expect(h["x-content-type-options"]).toBe("nosniff");
     expect(h["referrer-policy"]).toBe("strict-origin-when-cross-origin");

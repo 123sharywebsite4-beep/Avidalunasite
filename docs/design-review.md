@@ -26,6 +26,6 @@ After the test suite has exited, run `node scripts/review-site.mjs` from the rep
 - Review the general article overview. The complete original article and authoritative supporting sources are still needed. A draft article does not emit a publication date in structured data.
 - Supply the exact mission wording, if it is to be shown. Empty testimonials stay hidden; only permissioned CMS testimonials render.
 - Review the legal drafts. Their review notices remain visible.
-- Configure the actual Sanity, Stripe, Mailchimp and Resend accounts securely before expecting live integrations. No credentials are embedded in the design.
+- Configure the actual Sanity, Stripe, Mailchimp and Netlify Forms accounts securely before expecting live integrations. No credentials are embedded in the design.
 
 Content TODOs remain recorded in source and CMS-facing guidance but are hidden from the visitor interface. The supplied “Recovery Ritual” add-on uses “Recovery add-on” as its public fallback name to respect the brief’s tone; its underlying ID and pricing behavior are unchanged.

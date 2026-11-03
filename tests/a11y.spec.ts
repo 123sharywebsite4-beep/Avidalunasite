@@ -1,6 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
-import { PUBLIC_PAGES } from "./helpers";
+import { expect, PUBLIC_PAGES, test } from "./helpers";
 
 test.describe("accessibility (axe, WCAG 2.2 AA)", () => {
   for (const path of PUBLIC_PAGES) {
@@ -22,10 +21,8 @@ test.describe("accessibility (axe, WCAG 2.2 AA)", () => {
     await page.keyboard.type("Rivera");
     await page.keyboard.press("Tab");
     await page.keyboard.type("ana@example.com");
-    await page.keyboard.press("Tab"); // phone
     await page.keyboard.press("Tab"); // opt-in
     await page.keyboard.press("Space");
-    await page.waitForTimeout(2700);
     await page.keyboard.press("Tab"); // submit
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("hydreight-button")).toBeVisible();

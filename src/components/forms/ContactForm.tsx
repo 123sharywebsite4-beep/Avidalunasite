@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { addToList } from "@/lib/mailchimp-signup";
 import { contactSchema, contactTopics, fieldErrors } from "@/lib/validation";
 import { CheckboxField, FormError, Honeypot, SelectField, TextAreaField, TextField } from "./fields";
-import { postJson, readForm } from "./submit";
-import { useStartedAt } from "./useGuard";
+import { HONEYPOT, readForm, splitName, submitNetlifyForm } from "./submit";
 
-export function ContactForm() {
-  const startedAt = useStartedAt();
+/** Sent to Netlify Forms as "contact", which emails it to Shary. */
+export function ContactForm({ contactEmail }: { contactEmail: string }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -29,8 +29,6 @@ export function ContactForm() {
       topic: str("topic"),
       message: str("message"),
       optIn: bool("optIn"),
-      website: str("website"),
-      startedAt: startedAt.current,
     };
     const parsed = contactSchema.safeParse(payload);
     if (!parsed.success) {
@@ -38,14 +36,26 @@ export function ContactForm() {
       return;
     }
     setErrors({});
+    const d = parsed.data;
+    const bot = str(HONEYPOT);
     setPending(true);
-    const result = await postJson("/api/contact", payload);
+    const sent = await submitNetlifyForm("contact", {
+      name: d.name,
+      email: d.email,
+      phone: d.phone,
+      topic: d.topic,
+      message: d.message,
+      optIn: d.optIn ? "yes" : "no",
+      [HONEYPOT]: bot,
+    });
     setPending(false);
-    if (result.ok) setDone(true);
-    else {
-      setErrors(result.fields ?? {});
-      setFormError(result.error);
+    if (!sent) {
+      setFormError(`Sorry, that didn't send. Please email ${contactEmail} instead.`);
+      return;
     }
+    setDone(true);
+    // The message itself only goes to Shary's email. The list sign-up runs in the background.
+    if (d.optIn && !bot) void addToList({ email: d.email, ...splitName(d.name), source: "contact", optIn: true });
   }
 
   if (done) {

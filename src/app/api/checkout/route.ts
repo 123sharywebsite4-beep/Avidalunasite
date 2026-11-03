@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
   const origin = req.nextUrl.origin;
   try {
     const session = await createAddOnCheckout(parsed.data.items, parsed.data.email || undefined, {
-      followUpId: parsed.data.followUpId || undefined,
       successUrl: `${origin}/add-ons/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/add-ons/cancel`,
     });

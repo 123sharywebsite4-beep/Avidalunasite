@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Form definitions</title>
+</head>
+<body>
+<!--
+  Netlify Forms definitions. Netlify reads this file at deploy time to register the forms,
+  and the site's React forms POST their submissions here (application/x-www-form-urlencoded,
+  with form-name). Field names must match exactly what the components send:
+    contact           src/components/forms/ContactForm.tsx
+    group-request     src/components/forms/GroupRequestForm.tsx
+    add-ons-at-visit  src/components/AddOnPicker.tsx ("Pay at my visit" on /add-ons)
+    booking-extras    src/components/AddOnPicker.tsx ("Pay at my visit" on /book step 3: package + enhancements)
+    restorative-request  src/components/forms/RestorativeRequestForm.tsx (restorative-only visits)
+  No health fields, ever. Netlify emails each submission to Shary (Netlify UI > Forms > notifications).
+-->
+<form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="contact">
+  <input type="text" name="bot-field">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <input type="tel" name="phone">
+  <input type="text" name="topic">
+  <textarea name="message"></textarea>
+  <input type="text" name="optIn">
+</form>
+
+<form name="group-request" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="group-request">
+  <input type="text" name="bot-field">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <input type="tel" name="phone">
+  <input type="text" name="eventDate">
+  <input type="text" name="city">
+  <input type="text" name="groupSize">
+  <input type="text" name="eventType">
+  <textarea name="note"></textarea>
+  <input type="text" name="optIn">
+</form>
+
+<form name="add-ons-at-visit" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="add-ons-at-visit">
+  <input type="text" name="bot-field">
+  <input type="text" name="firstName">
+  <input type="email" name="email">
+  <textarea name="addOns"></textarea>
+  <input type="text" name="total">
+</form>
+
+<form name="booking-extras" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="booking-extras">
+  <input type="text" name="bot-field">
+  <input type="text" name="name">
+  <input type="email" name="email">
+  <input type="text" name="package">
+  <textarea name="items"></textarea>
+  <input type="text" name="dueAtVisit">
+</form>
+
+<form name="restorative-request" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="restorative-request">
+  <input type="text" name="bot-field">
+  <input type="text" name="firstName">
+  <input type="text" name="lastName">
+  <input type="email" name="email">
+  <input type="tel" name="phone">
+  <input type="text" name="cityZip">
+  <input type="text" name="selection">
+  <textarea name="enhancements"></textarea>
+  <input type="text" name="travelFee">
+  <input type="text" name="total">
+  <input type="text" name="preferred1">
+  <input type="text" name="preferred2">
+  <input type="text" name="preferred3">
+  <input type="text" name="optIn">
+</form>
+</body>
+</html>

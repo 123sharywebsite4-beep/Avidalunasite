@@ -42,8 +42,8 @@ export function HowItWorks({ compact = false }: { compact?: boolean }) {
       </Todo>
       {compact ? null : (
         <p className="mt-5 text-muted">
-          Optional <Link href="/add-ons">wellness add-ons</Link>, like red light or aromatherapy, can be added after you
-          book. Pay for them at your visit or online.
+          Optional <Link href="/add-ons">restorative enhancements</Link>, like red light, compression boots or
+          aromatherapy, can be added after you book. Pay for them at your visit.
         </p>
       )}
     </div>

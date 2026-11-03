@@ -26,7 +26,7 @@ export function stripeClient(): Stripe | null {
 }
 
 export const stripeProvider: AddOnPaymentProvider = {
-  async createCheckout(lines, { email, successUrl, cancelUrl, followUpId }) {
+  async createCheckout(lines, { email, successUrl, cancelUrl }) {
     const stripe = stripeClient();
     if (!stripe) throw new Error("Stripe is not configured");
     const session = await stripe.checkout.sessions.create({
@@ -48,11 +48,9 @@ export const stripeProvider: AddOnPaymentProvider = {
           optional: false,
         },
       ],
-      // Only ids and quantities, so the webhook can log what was bought, plus the id of
-      // the scheduled follow-up email it should cancel. No personal data.
+      // Only ids and quantities, so the webhook can log what was bought. No personal data.
       metadata: {
         addons: lines.map((l) => `${l.id}x${l.quantity}`).join(",").slice(0, 500),
-        ...(followUpId ? { followup: followUpId } : {}),
       },
       success_url: successUrl,
       cancel_url: cancelUrl,

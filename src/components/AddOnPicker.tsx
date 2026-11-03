@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDuration, formatPrice } from "@/lib/format";
-import type { AddOn } from "@/lib/types";
+import { atVisitPart, enhancementPrice, restorativeItems } from "@/lib/packages";
+import type { AddOn, WellnessPackage } from "@/lib/types";
 import { PhotoSlot } from "./Portrait";
+import { atVisitSchema, bookingExtrasSchema, fieldErrors } from "@/lib/validation";
 import { FormError, Honeypot, TextField } from "./forms/fields";
-import { postJson, readForm, safeSession, session, STORAGE } from "./forms/submit";
-import { useStartedAt } from "./forms/useGuard";
+import { HONEYPOT, postJson, readForm, safeSession, session, STORAGE, submitNetlifyForm } from "./forms/submit";
 import { CheckIcon, MinusIcon, PlusIcon } from "./Icons";
 
 const MAX = 10;
@@ -29,20 +30,32 @@ function loadSelection(validIds: Set<string>): Selection {
   }
 }
 
+/**
+ * Enhancements for an appointment that's already booked, at enhancement prices.
+ * "Pay at my visit" emails Shary through Netlify Forms: "add-ons-at-visit" from /add-ons,
+ * "booking-extras" from /book step 3 (which also carries the package's at-visit part).
+ * Nothing about health, and never which IV was chosen.
+ */
 export function AddOnPicker({
   addOns,
   paymentsEnabled,
+  formName = "add-ons-at-visit",
+  pkg = null,
 }: {
   addOns: AddOn[];
   paymentsEnabled: boolean;
+  formName?: "add-ons-at-visit" | "booking-extras";
+  /** The package being booked: its restorative part is paid at the visit too. */
+  pkg?: WellnessPackage | null;
 }) {
+  const extras = formName === "booking-extras";
+  const packageDue = pkg ? atVisitPart(pkg) : 0;
   const [qty, setQty] = useState<Selection>({});
   const [restored, setRestored] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
-  const startedAt = useStartedAt();
-  const [contact, setContact] = useState({ firstName: "", email: "" });
+  const [contact, setContact] = useState({ firstName: "", lastName: "", email: "" });
   const [visitErrors, setVisitErrors] = useState<Record<string, string>>({});
   const [visitError, setVisitError] = useState<string | null>(null);
   const [visitPending, setVisitPending] = useState(false);
@@ -66,7 +79,7 @@ export function AddOnPicker({
     for (const a of addOns) {
       const q = qty[a.id] ?? 0;
       count += q;
-      total += q * a.price;
+      total += q * enhancementPrice(a);
     }
     return { count, total };
   }, [qty, addOns]);
@@ -91,8 +104,7 @@ export function AddOnPicker({
       quantity,
     }));
     const email = session.get(STORAGE.email) ?? "";
-    const followUpId = session.get(STORAGE.followUpId) ?? "";
-    const result = (await postJson("/api/checkout", { items, email, followUpId })) as
+    const result = (await postJson("/api/checkout", { items, email })) as
       { ok: true; url?: string } | { ok: false; error: string };
     if (result.ok && "url" in result && result.url) {
       window.location.assign(result.url);
@@ -106,11 +118,15 @@ export function AddOnPicker({
     );
   }
 
+  const canConfirm = count > 0 || Boolean(pkg);
+  const dueAtVisit = packageDue + total;
+
   function openAtVisit() {
-    if (count === 0) return;
+    if (!canConfirm) return;
     const session = safeSession();
     setContact({
       firstName: session?.getItem(STORAGE.firstName) ?? "",
+      lastName: session?.getItem(STORAGE.lastName) ?? "",
       email: session?.getItem(STORAGE.email) ?? "",
     });
     setVisitErrors({});
@@ -119,40 +135,77 @@ export function AddOnPicker({
     dialog.current?.showModal();
   }
 
+  // Sent to Netlify Forms as "add-ons-at-visit", which emails Shary what to bring.
+  // Nothing is charged, so the prices here are the ones shown on the page.
   async function sendAtVisit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (visitPending) return;
     const { str } = readForm(e.currentTarget);
-    setVisitPending(true);
-    setVisitError(null);
-    const result = await postJson("/api/add-ons/at-visit", {
+    const input = {
       items: Object.entries(qty).map(([id, quantity]) => ({ id, quantity })),
       firstName: str("firstName"),
       email: str("email"),
-      followUpId: session.get(STORAGE.followUpId) ?? "",
-      website: str("website"),
-      startedAt: startedAt.current,
-    });
+    };
+    const parsed = extras
+      ? bookingExtrasSchema.safeParse({ ...input, lastName: str("lastName") })
+      : atVisitSchema.safeParse(input);
+    if (!parsed.success) {
+      setVisitErrors(fieldErrors(parsed.error));
+      return;
+    }
+    setVisitErrors({});
+    setVisitError(null);
+    const chosen = addOns.filter((a) => qty[a.id]);
+    const lines = chosen.map(
+      (a) => `${a.name} × ${qty[a.id]}: ${formatPrice(enhancementPrice(a) * qty[a.id])}`,
+    );
+    setVisitPending(true);
+    const lastName = "lastName" in parsed.data ? String(parsed.data.lastName) : "";
+    const sent = extras
+      ? await submitNetlifyForm("booking-extras", {
+          name: `${parsed.data.firstName} ${lastName}`.trim(),
+          email: parsed.data.email,
+          package: pkg?.name ?? "None",
+          // Only the non-medical items. Never the IV or injection, and never which IV was chosen.
+          items: [
+            ...(pkg
+              ? [`${pkg.name} (package, at visit): ${restorativeItems(pkg).map((i) => i.name).join(", ")}: ${formatPrice(packageDue)}`]
+              : []),
+            ...lines.map((l) => `Enhancement: ${l}`),
+          ].join("\n"),
+          dueAtVisit: formatPrice(dueAtVisit),
+          [HONEYPOT]: str(HONEYPOT),
+        })
+      : await submitNetlifyForm("add-ons-at-visit", {
+          firstName: parsed.data.firstName,
+          email: parsed.data.email,
+          addOns: lines.join("\n"),
+          total: formatPrice(total),
+          [HONEYPOT]: str(HONEYPOT),
+        });
     setVisitPending(false);
-    if (result.ok) {
-      safeSession()?.setItem(STORAGE.email, str("email"));
-      safeSession()?.setItem(STORAGE.firstName, str("firstName"));
+    if (sent) {
+      session.set(STORAGE.email, parsed.data.email);
+      session.set(STORAGE.firstName, parsed.data.firstName);
+      if (lastName) session.set(STORAGE.lastName, lastName);
       setVisitSent(true);
       setQty({});
     } else {
-      setVisitErrors(result.fields ?? {});
-      setVisitError(result.error);
+      setVisitError("Sorry, that didn't send. Please try again, or just tell Shary at your visit.");
     }
   }
 
-  const summaryText = `${count} ${count === 1 ? "add-on" : "add-ons"} · ${formatPrice(total)}`;
+  const enhancementText = `${count} ${count === 1 ? "enhancement" : "enhancements"}`;
+  const summaryText = pkg
+    ? `${pkg.name} extras + ${enhancementText} · ${formatPrice(dueAtVisit)} at your visit`
+    : `${enhancementText} · ${formatPrice(total)}`;
 
   const atVisitButton = (
     <button
       type="button"
       className="btn btn-primary w-full"
       onClick={openAtVisit}
-      disabled={count === 0}
+      disabled={!canConfirm}
       aria-describedby="addon-summary"
     >
       Pay at my visit
@@ -174,13 +227,13 @@ export function AddOnPicker({
       className="rounded-xl bg-sage/50 px-4 py-3 text-[0.9375rem]"
       data-testid="payments-off"
     >
-      Online payment coming soon. Pay for your add-ons at your visit.
+      Online payment coming soon. Pay for these at your visit.
     </p>
   );
 
   return (
     <div className="addon-layout grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
-      <ul className="addon-list" aria-label="Wellness add-ons">
+      <ul className="addon-list" aria-label="Enhancements">
         {addOns.map((a) => {
           const q = qty[a.id] ?? 0;
           const duration = formatDuration(a.durationMinutes);
@@ -202,7 +255,10 @@ export function AddOnPicker({
               <div className="addon-item-body flex flex-1 flex-col p-5">
                 <h2 className="text-2xl">{a.name}</h2>
                 <p className="mt-1 text-[0.9375rem] font-semibold">
-                  {[duration, formatPrice(a.price)].filter(Boolean).join(" · ")}
+                  {[duration, formatPrice(enhancementPrice(a))].filter(Boolean).join(" · ")}
+                  {enhancementPrice(a) < a.price ? (
+                    <span className="font-normal text-muted"> (enhancement price; {formatPrice(a.price)} on its own)</span>
+                  ) : null}
                 </p>
                 <p className="mt-2 flex-1">{a.description}</p>
                 <div
@@ -245,14 +301,24 @@ export function AddOnPicker({
       {/* Desktop summary card */}
       <aside
         className="card sticky top-28 hidden p-6 lg:block"
-        aria-label="Your add-ons"
+        aria-label="Your selection"
       >
         <p className="eyebrow mb-3">YOUR SELECTION</p>
-        <h2 className="text-2xl">Your add-ons</h2>
-        {count === 0 ? (
-          <p className="mt-3">
-            Nothing added yet. Choose an optional add-on to see your total.
+        <h2 className="text-2xl">{pkg ? "Paid at your visit" : "Your enhancements"}</h2>
+        {pkg ? (
+          <p className="mt-3 flex justify-between gap-3" data-testid="package-at-visit">
+            <span>
+              {pkg.name}: {restorativeItems(pkg).map((i) => i.name).join(", ")}
+            </span>
+            <span>{formatPrice(packageDue)}</span>
           </p>
+        ) : null}
+        {count === 0 ? (
+          pkg ? null : (
+            <p className="mt-3">
+              Nothing added yet. Choose an optional enhancement to see your total.
+            </p>
+          )
         ) : (
           <ul className="mt-3 space-y-1">
             {addOns
@@ -262,7 +328,7 @@ export function AddOnPicker({
                   <span>
                     {a.name} × {qty[a.id]}
                   </span>
-                  <span>{formatPrice(a.price * (qty[a.id] ?? 0))}</span>
+                  <span>{formatPrice(enhancementPrice(a) * (qty[a.id] ?? 0))}</span>
                 </li>
               ))}
           </ul>
@@ -320,8 +386,8 @@ export function AddOnPicker({
               You&apos;re all set.
             </h2>
             <p className="mt-2">
-              Shary will bring your add-ons to your appointment. Pay at your
-              visit by tapping your card or phone.
+              Shary will bring {pkg ? "everything for your package" : "your enhancements"} to your
+              appointment. Pay at your visit by tapping your card or phone.
             </p>
             <button
               type="button"
@@ -342,6 +408,9 @@ export function AddOnPicker({
                 {summaryText}. Use the same email you booked with. Nothing is
                 charged now.
               </p>
+              <p className="mt-2 text-[0.9375rem] text-muted">
+                Please don&apos;t include medical information here.
+              </p>
             </div>
             <Honeypot />
             <TextField
@@ -353,6 +422,17 @@ export function AddOnPicker({
               defaultValue={contact.firstName}
               error={visitErrors.firstName}
             />
+            {extras ? (
+              <TextField
+                key={`l-${contact.lastName}`}
+                name="lastName"
+                label="Last name"
+                required
+                autoComplete="family-name"
+                defaultValue={contact.lastName}
+                error={visitErrors.lastName}
+              />
+            ) : null}
             <TextField
               key={`e-${contact.email}`}
               name="email"
@@ -371,7 +451,7 @@ export function AddOnPicker({
                 className="btn btn-primary flex-1"
                 disabled={visitPending}
               >
-                {visitPending ? "Sending…" : "Confirm add-ons"}
+                {visitPending ? "Sending…" : pkg ? "Confirm my package" : "Confirm enhancements"}
               </button>
               <button
                 type="button"

@@ -1,11 +1,12 @@
-// Local stand-in for Stripe, Mailchimp and Resend during Playwright tests.
+// Local stand-in for the Stripe API during Playwright tests (the server side of checkout).
 // Records every request so tests can check exactly what the site sent.
-import crypto from "node:crypto";
+// Mailchimp and Netlify Forms are called from the browser, so the tests mock those with
+// page routes instead (see tests/helpers.ts).
 import { createServer } from "node:http";
 
 const PORT = Number(process.env.MOCK_PORT || 3299);
 const SITE = process.env.MOCK_SITE || "http://localhost:3200";
-const state = { mailchimpFail: false, requests: [], lastSession: null, emails: [] };
+const state = { requests: [], lastSession: null };
 
 function send(res, status, body) {
   res.writeHead(status, { "Content-Type": "application/json" });
@@ -27,7 +28,7 @@ createServer(async (req, res) => {
   // Test controls
   if (url.pathname === "/__control" && req.method === "POST") {
     Object.assign(state, JSON.parse(body || "{}"));
-    if (state.reset) Object.assign(state, { requests: [], reset: false, mailchimpFail: false, emails: [] });
+    if (state.reset) Object.assign(state, { requests: [], reset: false });
     return send(res, 200, { ok: true });
   }
   if (url.pathname === "/__requests") return send(res, 200, state.requests);
@@ -66,40 +67,6 @@ createServer(async (req, res) => {
         data: s.lines.map((l) => ({ description: l.name, quantity: l.quantity, amount_total: l.unit * l.quantity })),
       },
     });
-  }
-
-  // Mailchimp
-  if (url.pathname.startsWith("/mailchimp/3.0/lists/")) {
-    if (state.mailchimpFail) return send(res, 500, { title: "Internal Server Error" });
-    if (url.pathname.endsWith("/tags")) return send(res, 204);
-    return send(res, 200, { status: "subscribed" });
-  }
-
-  // Resend: keeps sent and scheduled emails so list and cancel behave like the real API.
-  if (url.pathname === "/resend/emails" && req.method === "POST") {
-    const sent = JSON.parse(body || "{}");
-    const key = req.headers["idempotency-key"];
-    if (key && state.emails.some((e) => e.key === key)) return send(res, 409, { name: "concurrent_idempotent_requests" });
-    const id = crypto.randomUUID();
-    state.emails.unshift({
-      id,
-      key,
-      to: sent.to,
-      subject: sent.subject,
-      last_event: sent.scheduled_at ? "scheduled" : "sent",
-      created_at: new Date().toISOString(),
-    });
-    return send(res, 200, { id });
-  }
-  if (url.pathname === "/resend/emails" && req.method === "GET") {
-    return send(res, 200, { object: "list", has_more: false, data: state.emails.map((e) => ({ ...e, key: undefined })) });
-  }
-  const cancel = url.pathname.match(/^\/resend\/emails\/([^/]+)\/cancel$/);
-  if (cancel && req.method === "POST") {
-    const email = state.emails.find((e) => e.id === cancel[1]);
-    if (!email || email.last_event !== "scheduled") return send(res, 422, { name: "validation_error" });
-    email.last_event = "canceled";
-    return send(res, 200, { object: "email", id: email.id });
   }
 
   send(res, 404, { error: "not mocked" });

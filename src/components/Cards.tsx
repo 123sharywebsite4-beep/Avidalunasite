@@ -57,7 +57,7 @@ export function IvServiceCard({ service }: { service: Service }) {
             {service.optionName} · {formatPrice(service.optionPrice)}
           </p>
         ) : null}
-        <Link href="/book" className="iv-card-link" aria-label={`Book ${service.name}`}>
+        <Link href="/book" className="iv-card-link" aria-label={`Book this drip: ${service.name}`}>
           Book this drip <ArrowRightIcon className="size-4" />
         </Link>
       </div>

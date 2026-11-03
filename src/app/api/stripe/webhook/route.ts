@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { cancelFollowUps } from "@/lib/followup";
-import { tagIfSubscribed } from "@/lib/mailchimp";
 import { stripeClient } from "@/lib/payments/stripe";
 
 // Stripe webhook: confirms add-on payments. Logs only the session id, items and amount.
@@ -28,14 +26,6 @@ export async function POST(req: Request) {
       amount: session.amount_total,
       paid: session.payment_status,
     });
-    const email = session.customer_details?.email ?? session.customer_email;
-    if (session.payment_status === "paid") {
-      // They've bought add-ons, so the follow-up email pitching add-ons would be noise.
-      await Promise.all([
-        cancelFollowUps({ id: session.metadata?.followup, email }),
-        email ? tagIfSubscribed(email, "addon-purchased") : null,
-      ]);
-    }
   }
 
   return NextResponse.json({ received: true });

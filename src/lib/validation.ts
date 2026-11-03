@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-// Form schemas. Shared by the browser (instant feedback) and the API routes (the real check).
-// None of these accept health information: there is no health field, and free-text
-// boxes carry "Please don't include medical information here."
+// Form schemas, checked in the browser before anything is sent (Netlify Forms, Mailchimp)
+// and, for checkout, again on the server. None of these accept health information: there
+// is no health field, and free-text boxes carry "Please don't include medical information here."
 
 const name = z.string().trim().min(1, "Please enter your name.").max(60, "That's a bit long.");
 const email = z.string().trim().toLowerCase().email("Please enter a valid email address.").max(254);
@@ -15,24 +15,16 @@ const phone = z
   .default("");
 const shortText = (max: number) => z.string().trim().max(max, `Please keep this under ${max} characters.`);
 
-/** Spam guard fields sent by every form: an empty honeypot and the time the form was opened. */
-const guard = {
-  website: z.string().max(200).optional().default(""),
-  startedAt: z.number().int().nonnegative(),
-};
-
 export const intakeSchema = z.object({
   firstName: name,
   lastName: name,
   email,
-  phone,
   optIn: z.boolean().default(false),
-  ...guard,
 });
 export type IntakeInput = z.infer<typeof intakeSchema>;
 
 export const joinSchema = intakeSchema.extend({
-  optIn: z.literal(true, { error: "Please tick the box to join the list." }),
+  optIn: z.literal(true, { error: "Please check the box to join the list." }),
   eventSlug: z
     .string()
     .trim()
@@ -43,6 +35,9 @@ export const joinSchema = intakeSchema.extend({
 });
 export type JoinInput = z.infer<typeof joinSchema>;
 
+/** Free-guide signup (LeadMagnetForm): name and email only. */
+export const leadMagnetSchema = intakeSchema.pick({ firstName: true, lastName: true, email: true });
+
 export const contactTopics = ["General question", "Group event", "Partnership", "Other"] as const;
 
 export const contactSchema = z.object({
@@ -52,7 +47,6 @@ export const contactSchema = z.object({
   topic: z.enum(contactTopics, { error: "Please choose a topic." }),
   message: shortText(1000).min(1, "Please write a short message."),
   optIn: z.boolean().default(false),
-  ...guard,
 });
 export type ContactInput = z.infer<typeof contactSchema>;
 
@@ -76,18 +70,10 @@ export const groupRequestSchema = z.object({
   eventType: z.enum(eventTypes, { error: "Please choose an event type." }),
   note: shortText(1000).optional().default(""),
   optIn: z.boolean().default(false),
-  ...guard,
 });
 export type GroupRequestInput = z.infer<typeof groupRequestSchema>;
 
 export const MAX_ADDON_QUANTITY = 10;
-
-const followUpId = z
-  .string()
-  .regex(/^[0-9a-f-]{36}$/i)
-  .optional()
-  .or(z.literal(""))
-  .catch("");
 
 /** The browser sends only ids and quantities. Any price field is stripped and ignored. */
 export const checkoutSchema = z.object({
@@ -100,8 +86,6 @@ export const checkoutSchema = z.object({
     )
     .max(20),
   email: z.string().trim().toLowerCase().email().max(254).optional().or(z.literal("")),
-  /** The scheduled follow-up email to cancel once they've bought add-ons. Not personal data. */
-  followUpId: followUpId,
 });
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
@@ -110,10 +94,42 @@ export const atVisitSchema = z.object({
   items: checkoutSchema.shape.items,
   firstName: name,
   email,
-  followUpId,
-  ...guard,
 });
 export type AtVisitInput = z.infer<typeof atVisitSchema>;
+
+/** "Pay at my visit" from /book step 3: also the last name, for the "booking-extras" email to Shary. */
+export const bookingExtrasSchema = atVisitSchema.extend({ lastName: name });
+
+const preferredTime = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Please choose a date and time.");
+
+/**
+ * Restorative-only visit request (no IV or injection, so no Hydreight): contact details,
+ * where, what, and two or three preferred times. No health fields.
+ */
+export const restorativeRequestSchema = z.object({
+  firstName: name,
+  lastName: name,
+  email,
+  phone: z
+    .string()
+    .trim()
+    .max(25)
+    .refine((v) => /^[+\d][\d\s().-]{6,}$/.test(v), "Please enter a valid phone number."),
+  cityZip: shortText(80).min(2, "Please enter your city or ZIP code."),
+  selection: z
+    .string()
+    .trim()
+    .regex(/^(package|item):[a-z0-9-]{1,96}$/, "Please choose a package or service."),
+  extras: z.array(z.string().trim().min(1).max(100)).max(10),
+  preferred1: preferredTime,
+  preferred2: preferredTime,
+  preferred3: preferredTime.or(z.literal("")),
+  optIn: z.boolean().default(false),
+});
+export type RestorativeRequestInput = z.infer<typeof restorativeRequestSchema>;
 
 /** Field errors keyed by field name, first message only. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {

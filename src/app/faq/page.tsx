@@ -21,7 +21,7 @@ export const metadata: Metadata = pageMetadata({
 // shows under "More questions", so nothing is ever hidden.
 const groups = [
   { heading: "About mobile IV therapy", ids: ["faq-what-is", "faq-services", "faq-cost", "faq-spanish"] },
-  { heading: "Booking and payment", ids: ["faq-book", "faq-pay", "faq-addons", "faq-cancel"] },
+  { heading: "Booking and payment", ids: ["faq-book", "faq-pay", "faq-packages", "faq-addons", "faq-cancel"] },
   { heading: "Your in-home IV visit", ids: ["faq-get-started", "faq-before", "faq-during", "faq-length", "faq-who"] },
   { heading: "Safety and eligibility", ids: ["faq-eligibility", "faq-safety"] },
   { heading: "Service area and group events", ids: ["faq-travel", "faq-groups"] },

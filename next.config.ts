@@ -58,6 +58,7 @@ const nextConfig: NextConfig = {
       { source: "/api/:path*", headers: noindex },
       { source: "/add-ons/success", headers: noindex },
       { source: "/add-ons/cancel", headers: noindex },
+      { source: "/__forms.html", headers: noindex },
     ];
   },
 };

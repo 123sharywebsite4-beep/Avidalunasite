@@ -1,10 +1,13 @@
+import { MAILCHIMP } from "./constants";
+
 // Security headers for every response. Stripe Checkout is a full-page redirect,
 // so it only needs to be allowed as a form/navigation target, not embedded.
+// Mailchimp sign-ups load one JSONP reply from her list-manage host (script-src only).
 const isDev = process.env.NODE_ENV !== "production";
 
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${MAILCHIMP.origin}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://cdn.sanity.io",
   "font-src 'self'",

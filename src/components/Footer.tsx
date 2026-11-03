@@ -7,11 +7,12 @@ import { Todo } from "./Todo";
 
 const pageLinks = [
   { href: "/services", label: "Services" },
+  { href: "/packages", label: "Packages" },
   { href: "/events", label: "Group & corporate" },
   { href: "/about", label: "About Shary" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
-  { href: "/add-ons", label: "Wellness add-ons" },
+  { href: "/add-ons", label: "Enhancements" },
   { href: "/wellness-education", label: "Wellness education" },
   { href: "/book", label: "Book an appointment" },
 ];
@@ -46,14 +47,14 @@ export function Footer({ settings }: { settings: SiteSettings }) {
               </li>
               {settings.instagram ? (
                 <li>
-                  <a href={settings.instagram} className="inline-flex items-center gap-2" rel="noopener">
+                  <a href={settings.instagram} className="inline-flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                     <InstagramIcon /> Instagram
                   </a>
                 </li>
               ) : null}
               {settings.facebook ? (
                 <li>
-                  <a href={settings.facebook} className="inline-flex items-center gap-2" rel="noopener">
+                  <a href={settings.facebook} className="inline-flex items-center gap-2" target="_blank" rel="noopener noreferrer">
                     <FacebookIcon /> Facebook
                   </a>
                 </li>
