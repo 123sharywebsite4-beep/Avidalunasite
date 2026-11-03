@@ -123,7 +123,7 @@ export const services: Service[] = [
       "IV fluids with vitamins and minerals, given and monitored by Shary. Ask her whether it\u2019s a good fit for you.",
     price: 190,
     showPrice: true,
-    image: null,
+    image: { src: "/services/migraine.webp", alt: "A woman resting on a sofa with an IV drip and a mug of tea in a calm, sunlit living room", width: 1448, height: 1086 },
   },
   {
     id: "service-myers",
