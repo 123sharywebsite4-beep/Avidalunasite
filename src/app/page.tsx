@@ -229,6 +229,27 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      <section
+        className="home-notes home-wrap"
+        aria-labelledby="notes-heading"
+        data-reveal
+      >
+        <div className="notes-card">
+          <div>
+            <p className="home-label">A complimentary guide from Shary</p>
+            <h2 id="notes-heading">Wellness Notes from a Nurse</h2>
+          </div>
+          <div>
+            <p>
+              Thoughtful insights and practical reminders to support your
+              long-term health, one intentional choice at a time.
+            </p>
+            <Link href="/join" className="home-button">
+              Get your free copy <ArrowRightIcon />
+            </Link>
+          </div>
+        </div>
+      </section>
       <section id="how" className="home-how home-wrap home-section" data-reveal>
         <div className="section-heading">
           <p className="home-label">03 / How a visit works</p>

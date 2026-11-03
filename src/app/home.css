@@ -676,6 +676,35 @@
 .home-faq details[open] summary > span {
   transform: rotate(45deg);
 }
+.home-notes {
+  padding-top: 88px;
+}
+.notes-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: end;
+  border: 1px solid #d6d9cd;
+  padding: clamp(32px, 4vw, 56px);
+}
+.notes-card h2 {
+  margin-top: 16px;
+}
+.notes-card p:not(.home-label) {
+  font-size: 15px;
+  color: #53604f;
+  max-width: 440px;
+  margin-bottom: 28px;
+}
+@media (max-width: 767px) {
+  .home-notes {
+    padding-top: 64px;
+  }
+  .notes-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
 .home-final {
   background: var(--home-dark);
   color: #f7f4ed;
