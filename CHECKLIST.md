@@ -32,7 +32,7 @@ Updates only the documents and fields in Shary's pricing spec (service names and
 - [ ] Webhook (sanity.io/manage → API → Webhooks):
   - URL `https://www.avidaluna.com/api/revalidate` (add a second one for the preview URL while testing)
   - Dataset `production`, trigger on create, update, delete
-  - Filter: `_type in ["service","addon","package","event","article","faq","pageText","siteSettings","testimonial"]`
+  - Filter: `_type in ["service","addon","package","event","article","faq","pageText","legalPage","siteSettings","testimonial"]`
   - Projection: `{_type}`
   - Secret: the same long random string as `SANITY_REVALIDATE_SECRET`
   - HTTP method POST, API version `v2025-02-19` or newer

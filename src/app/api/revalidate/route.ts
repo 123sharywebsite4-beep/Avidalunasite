@@ -12,6 +12,7 @@ const KNOWN_TYPES = new Set([
   "article",
   "faq",
   "pageText",
+  "legalPage",
   "siteSettings",
   "testimonial",
 ]);

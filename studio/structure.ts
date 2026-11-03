@@ -1,8 +1,9 @@
 import type { StructureResolver } from "sanity/structure";
+import { LEGAL_PAGES } from "../content/legal";
 import { PAGES } from "./schemas/pageText";
 
 // Short, plain menu for Shary:
-// Services · Packages · Restorative & add-ons · Events · Wellness articles · FAQ · Page text · Contact info · Testimonials
+// Services · Packages · Restorative & add-ons · Events · Wellness articles · FAQ · Page text · Legal pages · Contact info · Testimonials
 export const structure: StructureResolver = (S) =>
   S.list()
     .title("Avida Luna")
@@ -24,6 +25,26 @@ export const structure: StructureResolver = (S) =>
                   .title(p.title)
                   .id(`pageText-${p.id}`)
                   .child(S.document().schemaType("pageText").documentId(`pageText-${p.id}`).title(p.title)),
+              ),
+            ),
+        ),
+      S.listItem()
+        .title("Legal pages")
+        .child(
+          S.list()
+            .title("Legal pages")
+            .items(
+              LEGAL_PAGES.map((p) =>
+                S.listItem()
+                  .title(p.title)
+                  .id(`legalPage-${p.id}`)
+                  .child(
+                    S.document()
+                      .schemaType("legalPage")
+                      .documentId(`legalPage-${p.id}`)
+                      .initialValueTemplate(`legalPage-${p.id}`)
+                      .title(p.title),
+                  ),
               ),
             ),
         ),

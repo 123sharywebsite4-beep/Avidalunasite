@@ -3,6 +3,7 @@ import { addon } from "./addon";
 import { article } from "./article";
 import { event } from "./event";
 import { faq } from "./faq";
+import { legalPage } from "./legalPage";
 import { wellnessPackage } from "./package";
 import { pageText } from "./pageText";
 import { service } from "./service";
@@ -17,9 +18,10 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   article,
   faq,
   pageText,
+  legalPage,
   siteSettings,
   testimonial,
 ];
 
 /** One-of-a-kind documents: no "create new", no delete, no duplicate. */
-export const SINGLETON_TYPES = new Set(["siteSettings", "pageText"]);
+export const SINGLETON_TYPES = new Set(["siteSettings", "pageText", "legalPage"]);
