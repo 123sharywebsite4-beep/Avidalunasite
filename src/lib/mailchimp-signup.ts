@@ -6,7 +6,7 @@ import { MAILCHIMP } from "./constants";
 // EMAIL, FNAME, LNAME, SOURCE and OPTIN. Never anything about health.
 
 /** Where the sign-up came from. Shary's Mailchimp automations key off this. */
-export type ListSource = "booking" | "join" | `join:${string}` | "contact" | "group" | "restorative";
+export type ListSource = "booking" | "join" | `join:${string}` | "contact" | "group" | "restorative" | "lead-magnet";
 
 export type ListSignup = {
   email: string;

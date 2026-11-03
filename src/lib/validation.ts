@@ -35,6 +35,9 @@ export const joinSchema = intakeSchema.extend({
 });
 export type JoinInput = z.infer<typeof joinSchema>;
 
+/** Free-guide signup (LeadMagnetForm): name and email only. */
+export const leadMagnetSchema = intakeSchema.pick({ firstName: true, lastName: true, email: true });
+
 export const contactTopics = ["General question", "Group event", "Partnership", "Other"] as const;
 
 export const contactSchema = z.object({
