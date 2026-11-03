@@ -113,7 +113,7 @@ The site adds people through her public signup form (no API key, no access to he
 - [ ] Her current site text (`source-content.md`), including her About story and mission quote, word for word
 - [ ] Photos (starting with `SharyPic.jpg`), and photos for each add-on
 - [ ] Higher-res or vector logo (SVG)
-- [ ] Instagram and Facebook links
+- [x] Instagram and Facebook links
 - [ ] Confirmed drip names and prices (do they match Hydreight?), and whether glutathione / B-complex stay listed
 - [ ] Recovery Ritual contents and duration
 - [ ] Service area. Travel pricing for injection-only appointments and the B12 packages (booking for them shows "Booking opens soon" until this is decided; then turn on **Booking open** on each B12 package in the Studio)
