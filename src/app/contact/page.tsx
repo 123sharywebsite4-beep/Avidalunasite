@@ -37,14 +37,14 @@ export default async function ContactPage() {
             </li>
             {settings.instagram ? (
               <li>
-                <a href={settings.instagram} className="inline-flex items-center gap-3 text-lg" rel="noopener">
+                <a href={settings.instagram} className="inline-flex items-center gap-3 text-lg" target="_blank" rel="noopener noreferrer">
                   <InstagramIcon /> Instagram
                 </a>
               </li>
             ) : null}
             {settings.facebook ? (
               <li>
-                <a href={settings.facebook} className="inline-flex items-center gap-3 text-lg" rel="noopener">
+                <a href={settings.facebook} className="inline-flex items-center gap-3 text-lg" target="_blank" rel="noopener noreferrer">
                   <FacebookIcon /> Facebook
                 </a>
               </li>

@@ -22,9 +22,8 @@ export const siteSettings: SiteSettings = {
   phoneTel: "tel:9413486972",
   email: "YourRNShary@gmail.com",
   serviceArea: "Lakewood Ranch, Sarasota, Bradenton and nearby, FL",
-  // TODO: Shary's Instagram and Facebook URLs. Links are hidden until these are set.
-  instagram: null,
-  facebook: null,
+  instagram: "https://www.instagram.com/avidalunallc/",
+  facebook: "https://www.facebook.com/profile.php?id=61584534575453",
   footerNote:
     "Medical services are booked and screened through our secure, HIPAA-compliant booking partner. This website is general information, not medical advice.",
   travelFee: 8,
