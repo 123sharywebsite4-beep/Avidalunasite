@@ -15,6 +15,7 @@ import type {
   PageText,
   RichBlock,
   Service,
+  LeadMagnetContent,
   SiteSettings,
   Testimonial,
   WellnessPackage,
@@ -70,9 +71,16 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     travelIncludedMinutes?: number;
     ivInfusionTime?: string;
     ivAppointmentTime?: string;
+    leadMagnet?: Partial<LeadMagnetContent>;
   } | null>(`*[_id == "siteSettings"][0]`, {}, ["siteSettings"]);
-  const base = { ...fallback.siteSettings, email: CONTACT_EMAIL };
+  const base = {
+    ...fallback.siteSettings,
+    email: CONTACT_EMAIL,
+    // Test-only switch (Playwright runs without Sanity). Never set it on Netlify.
+    leadMagnet: { ...fallback.siteSettings.leadMagnet, enabled: process.env.LEAD_MAGNET_TEST_ENABLED === "1" },
+  };
   if (!data) return base;
+  const lead = data.leadMagnet ?? {};
   const phoneDisplay = data.phone || base.phoneDisplay;
   return {
     phoneDisplay,
@@ -86,6 +94,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     travelIncludedMinutes: data.travelIncludedMinutes || base.travelIncludedMinutes,
     ivInfusionTime: data.ivInfusionTime || base.ivInfusionTime,
     ivAppointmentTime: data.ivAppointmentTime || base.ivAppointmentTime,
+    leadMagnet: {
+      enabled: lead.enabled === true,
+      heading: lead.heading?.trim() || base.leadMagnet.heading,
+      description: lead.description?.trim() || base.leadMagnet.description,
+      buttonLabel: lead.buttonLabel?.trim() || base.leadMagnet.buttonLabel,
+      successMessage: lead.successMessage?.trim() || base.leadMagnet.successMessage,
+    },
   };
 }
 

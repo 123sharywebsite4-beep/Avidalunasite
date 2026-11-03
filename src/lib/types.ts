@@ -118,6 +118,17 @@ export type SiteSettings = {
   ivInfusionTime: string;
   /** The whole IV appointment (consultation, setup, enhancements), shown separately from the infusion. */
   ivAppointmentTime: string;
+  leadMagnet: LeadMagnetContent;
+};
+
+/** The free-guide email signup block (Sanity: Contact info → Free guide signup). */
+export type LeadMagnetContent = {
+  /** Off unless Shary turns it on in Studio. */
+  enabled: boolean;
+  heading: string;
+  description: string;
+  buttonLabel: string;
+  successMessage: string;
 };
 
 export type PageSection = { heading?: string; text?: string };

@@ -11,6 +11,8 @@ export const testEnv = {
   STRIPE_API_BASE: MOCK,
   STRIPE_WEBHOOK_SECRET: "whsec_test_mock",
   HYDREIGHT_HOOK_SECRET: "test-hook-secret",
+  // Shows the free-guide signup (off by default; Shary turns it on in Studio).
+  LEAD_MAGNET_TEST_ENABLED: "1",
 };
 
 export default defineConfig({

@@ -1170,3 +1170,50 @@ footer .rounded-lg.bg-cream {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Free-guide signup (LeadMagnetSection): a hairline box on cream, heading left, form right. */
+.lead-magnet {
+  background: var(--color-cream);
+  padding-block: 88px;
+}
+.lead-magnet-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  border: 1px solid #d6d9cd;
+  padding: clamp(32px, 4vw, 56px);
+}
+.lead-magnet-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+.lead-magnet h2 {
+  margin-top: 16px;
+  font-size: clamp(40px, 4.3vw, 66px);
+  line-height: 1.06;
+  letter-spacing: -0.055em;
+}
+.lead-magnet-description {
+  font-size: 15px;
+  color: #53604f;
+  max-width: 440px;
+  margin-bottom: 28px;
+}
+.lead-magnet-success {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-olive-dark);
+}
+@media (max-width: 767px) {
+  .lead-magnet {
+    padding-block: 64px;
+  }
+  .lead-magnet-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
