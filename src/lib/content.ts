@@ -1,5 +1,6 @@
 import "server-only";
 import * as fallback from "@content/fallback";
+import { type LegalBlock, type LegalPageKey, legalDefaults } from "@content/legal";
 import { CONTACT_EMAIL } from "./constants";
 import { type PackageSource, resolvePackages } from "./packages";
 import { cdnClient, liveClient } from "./sanity";
@@ -262,6 +263,31 @@ export async function getPageText(page: PageKey): Promise<PageText> {
     };
   }
   return { heading: data.heading || base.heading, intro: data.intro || base.intro, sections };
+}
+
+export type LegalPage = {
+  title: string;
+  lastUpdated: string | null; // YYYY-MM-DD
+  showDraftNote: boolean;
+  body: LegalBlock[];
+};
+
+/** Terms of use or Privacy notice. Until Shary publishes the page in Sanity, the default text shows. */
+export async function getLegalPage(page: LegalPageKey): Promise<LegalPage> {
+  const data = await fetchTagged<{
+    title?: string;
+    lastUpdated?: string;
+    showDraftNote?: boolean;
+    body?: LegalBlock[];
+  } | null>(`*[_id == $id][0]{ title, lastUpdated, showDraftNote, body }`, { id: `legalPage-${page}` }, ["legalPage"]);
+  const { email } = await getSiteSettings();
+  const base = legalDefaults(email)[page];
+  return {
+    title: data?.title || base.title,
+    lastUpdated: data?.lastUpdated || null,
+    showDraftNote: data?.showDraftNote ?? true,
+    body: data?.body?.length ? data.body : base.body,
+  };
 }
 
 export const credentials = fallback.credentials;

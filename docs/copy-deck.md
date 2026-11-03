@@ -175,7 +175,7 @@ Where it lives: this copy is in `/content/fallback.ts` (what the site shows with
 
 ## Privacy and Terms
 
-Both are stubs marked "Draft, needs review by a lawyer." See the pages for the text.
+Both are stubs marked "Draft, needs review by a lawyer." Shary edits them in Sanity under **Legal pages** (the draft note has its own on/off switch). Until a page is published there, the site shows the default text in `content/legal.ts`, which also pre-fills the Studio the first time she opens each page.
 
 ## SEO titles and descriptions
 
