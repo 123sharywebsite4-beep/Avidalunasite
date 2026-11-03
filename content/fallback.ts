@@ -270,7 +270,21 @@ export const packages: PackageSeed[] = [
   { id: "package-b12-and-restore", slug: "b12-and-restore", name: "B12 & Restore", type: "injection", includes: ["service-b12", "addon-red-light", "addon-compression-boots"], price: 99, bookingOpen: false },
 ];
 
-export const events: EventItem[] = [];
+export const events: EventItem[] = [
+  {
+    id: "event-hydration-vibration-2026-11-15",
+    slug: "hydration-vibration",
+    title: "Hydration & Vibration: An Intentional Wellness Experience",
+    date: "2026-11-15",
+    startTime: "10:00",
+    endTime: "13:00",
+    place: "Private venue, Sarasota (address shared with registered guests)",
+    description:
+      "Three hours of IV hydration with electrolytes and vitamin B12, Yin yoga, a sound bath, hands-on body care with licensed practitioners, a floral arrangement to take home, light bites and a wellness beverage, with local women-owned wellness businesses. On-site telehealth consult for the IV included. Doors open at 9:30am. Ages 18+. Tickets from $107.48.",
+    link: "https://www.eventbrite.com/e/hydration-vibration-an-intentional-wellness-experience-tickets-2003739804695",
+    image: null,
+  },
+];
 
 export const articles: Article[] = [
   {
