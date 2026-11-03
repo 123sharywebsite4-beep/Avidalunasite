@@ -297,12 +297,227 @@ export const events: EventItem[] = [
 
 export const articles: Article[] = [
   {
+    id: "article-mobile-iv-hydration-busy-schedules",
+    slug: "mobile-iv-hydration-for-busy-schedules",
+    title: "Mobile IV Hydration for Busy Schedules",
+    summary:
+      "Mobile IV hydration brings convenient, nurse-led wellness services to your home, office, or hotel in Sarasota and Bradenton. No extra trip required.",
+    body: [
+      { type: "h2", text: "Key takeaways" },
+      {
+        type: "ul",
+        items: [
+          "Mobile IV hydration brings professional hydration services directly to your home, office, hotel, or vacation rental.",
+          "Busy professionals, parents, healthcare workers, and travelers can schedule appointments around their existing routines.",
+          "IV hydration delivers fluids and electrolytes directly into the bloodstream when medically appropriate.",
+          "Avida Luna Wellness provides personalized, nurse-led mobile IV hydration throughout Sarasota and Bradenton.",
+        ],
+      },
+      { type: "h2", text: "How can you make time for wellness when your schedule is already full?" },
+      {
+        type: "p",
+        text: "Between work deadlines, school pickups, meetings, appointments, and everything else on your calendar, finding time to take care of yourself can feel like another task on an endless to-do list.",
+      },
+      {
+        type: "p",
+        text: "You know hydration matters. You know getting enough rest, eating well, and prioritizing your health are important. The challenge isn't always knowing what to do. Sometimes, it's finding the time to actually do it.",
+      },
+      {
+        type: "p",
+        text: "For busy professionals, parents, business owners, and anyone balancing a demanding schedule, even a wellness appointment can feel inconvenient.",
+      },
+      { type: "p", text: "Taking care of yourself shouldn't require rearranging your whole schedule." },
+      {
+        type: "p",
+        text: "That's where mobile IV hydration comes in. Instead of driving to a clinic, waiting for your appointment, and traveling back, a qualified healthcare professional brings hydration services directly to you.",
+      },
+      { type: "h2", text: "What is mobile IV hydration?" },
+      {
+        type: "p",
+        text: "Mobile IV hydration delivers intravenous fluids and electrolytes directly to you, rather than requiring you to visit a traditional clinic.",
+      },
+      {
+        type: "p",
+        text: "IV therapy administers fluids through a small catheter placed in a vein. Depending on your individual needs and medical eligibility, certain formulations may also contain vitamins or other ingredients.",
+      },
+      {
+        type: "p",
+        text: "With Avida Luna Wellness, Shary, an experienced registered nurse, travels to your location with the necessary supplies and equipment.",
+      },
+      {
+        type: "p",
+        text: "Before your infusion, you'll complete a medical assessment with Shary and a required telehealth consultation with a healthcare provider. This process is completed once every six months and can be done on the spot during your first appointment or in advance, so you're ready when it's time for your infusion.",
+      },
+      {
+        type: "p",
+        text: "Once you're cleared, Shary prepares your infusion, gets you comfortably settled, and monitors you throughout your appointment.",
+      },
+      {
+        type: "p",
+        text: "It's professional, personalized nursing care delivered wherever it's most convenient for you.",
+      },
+      { type: "h2", text: "How does mobile IV hydration fit into your daily routine?" },
+      {
+        type: "p",
+        text: "One of the biggest advantages of mobile IV hydration is flexibility. You don't have to build your entire day around an appointment when the appointment can come to you.",
+      },
+      { type: "h3", text: "For business owners and busy professionals" },
+      {
+        type: "p",
+        text: "Running a business or managing a demanding career often means your calendar fills up before the week even begins. Between client calls, meetings, and daily responsibilities, stepping away for a wellness appointment isn't always practical.",
+      },
+      {
+        type: "p",
+        text: "Shary has provided mobile IV hydration in corporate offices, including appointments where clients continued working at their desks or participated in Zoom meetings during their infusions.",
+      },
+      {
+        type: "p",
+        text: "Depending on your IV and work environment, you may be able to answer emails, handle administrative tasks, or simply take a break while receiving your infusion.",
+      },
+      { type: "h3", text: "For parents managing everyone's schedule" },
+      {
+        type: "p",
+        text: "School drop-offs, extracurricular activities, grocery shopping, and family responsibilities can make finding a quiet moment for yourself challenging.",
+      },
+      {
+        type: "p",
+        text: "Parents often spend so much time organizing everyone else's schedules that their own needs end up at the bottom of the list.",
+      },
+      {
+        type: "p",
+        text: "With mobile IV hydration, you can schedule an appointment at home without arranging another trip across town. It's one less logistical hurdle between you and making time for yourself.",
+      },
+      { type: "h3", text: "For healthcare workers and professionals with demanding hours" },
+      {
+        type: "p",
+        text: "If you work long shifts, unpredictable hours, or physically demanding jobs, you know how valuable your time away from work can be.",
+      },
+      {
+        type: "p",
+        text: "Healthcare workers, first responders, hospitality professionals, and others with demanding schedules don't always have the luxury of a traditional nine-to-five routine.",
+      },
+      {
+        type: "p",
+        text: "Mobile IV hydration allows you to schedule services around your availability, whether that's on a day off or during a convenient window between responsibilities.",
+      },
+      { type: "h3", text: "For frequent travelers" },
+      {
+        type: "p",
+        text: "Travel can be exciting, but it can also disrupt your usual routines. Between flights, changing schedules, sightseeing, and Florida's warm weather, it's easy to overlook everyday hydration habits.",
+      },
+      {
+        type: "p",
+        text: "Avida Luna Wellness brings mobile IV hydration to hotels, vacation rentals, and Airbnbs throughout its service area.",
+      },
+      {
+        type: "p",
+        text: "Whether you're visiting Sarasota for business or spending a weekend in Bradenton, you can inquire about hydration services without leaving your accommodations.",
+      },
+      { type: "h2", text: "Why is staying hydrated important when you're busy?" },
+      {
+        type: "p",
+        text: "Water plays an essential role in nearly every system in your body, from regulating temperature and supporting circulation to transporting nutrients and maintaining normal function.",
+      },
+      {
+        type: "p",
+        text: "Even mild dehydration can contribute to headaches, fatigue, dizziness, and difficulty concentrating.",
+      },
+      {
+        type: "p",
+        text: "Between demanding schedules, nutritional gaps, caffeine consumption, and the constant demands of everyday life, it's easy to fall behind on hydration and the nutrients your body needs.",
+      },
+      { type: "p", text: "Drinking more water isn't always the whole answer." },
+      {
+        type: "p",
+        text: "Your body also relies on electrolytes like sodium, potassium, and magnesium to maintain fluid balance, support muscle function, and keep your nervous system working properly. When you're losing fluids through sweat or other activities, you're losing electrolytes along with them.",
+      },
+      {
+        type: "p",
+        text: "While drinking water is essential, it doesn't replace all the vitamins and minerals your body needs. Proper hydration also involves balanced nutrition and replenishing electrolytes when necessary.",
+      },
+      {
+        type: "p",
+        text: "Mobile IV hydration offers an additional option for delivering fluids and electrolytes directly into the bloodstream when medically appropriate, helping address hydration needs without adding another stop to your already busy day.",
+      },
+      { type: "h2", text: "Can convenience help you prioritize your wellness?" },
+      { type: "p", text: "Convenience can make it easier to follow through on healthy intentions." },
+      {
+        type: "p",
+        text: "Think about the routines you've already established. Maybe you schedule workouts before work, prepare meals for the week, or keep a water bottle nearby. Those small decisions make healthy choices easier to maintain.",
+      },
+      {
+        type: "p",
+        text: "Shary believes wellness begins with everyday habits like getting enough sleep, staying hydrated, eating nutritious foods, moving your body, and making intentional choices.",
+      },
+      {
+        type: "p",
+        text: "Mobile IV hydration doesn't replace those foundations. Instead, it's an additional service that may fit into your wellness routine when medically appropriate.",
+      },
+      {
+        type: "p",
+        text: "For someone who already prioritizes their health but has limited time for appointments, having a nurse come directly to them removes a significant scheduling obstacle.",
+      },
+      { type: "h2", text: "Your schedule is full. Your wellness still matters." },
+      {
+        type: "p",
+        text: "You don't have to completely overhaul your life to make room for healthier habits.",
+      },
+      {
+        type: "p",
+        text: "Sometimes it's as simple as drinking more water, getting outside in the morning, making sleep a priority, or finding services that work with your schedule rather than against it.",
+      },
+      {
+        type: "p",
+        text: "Whether you're running a business, raising a family, working long shifts, or traveling through Southwest Florida, Avida Luna Wellness makes it easier to access personalized IV hydration services at a location that works for you.",
+      },
+      { type: "p", text: "Life is hard. Wellness doesn't have to be." },
+      {
+        type: "p",
+        text: "Ready to see whether mobile IV hydration is right for you? Contact Avida Luna Wellness to discuss your options and schedule an appointment in Sarasota or Bradenton.",
+        links: [{ text: "Contact Avida Luna Wellness", href: "/contact" }],
+      },
+      { type: "h2", text: "Frequently asked questions about mobile IV hydration" },
+      { type: "h3", text: "Can I receive mobile IV hydration while I'm working?" },
+      {
+        type: "p",
+        text: "Yes. Mobile IV hydration can be administered in suitable office environments. Depending on your IV, you may be able to continue working while receiving your infusion, provided you remain available for monitoring.",
+      },
+      { type: "h3", text: "Do I need to be sick to receive IV hydration?" },
+      {
+        type: "p",
+        text: "No. However, IV hydration should be based on your individual health needs and medical eligibility. It's not routinely necessary for healthy people who are adequately hydrated, but it helps fill the gaps in nutrition that can be caused by busy schedules and drinking water alone.",
+      },
+      { type: "h3", text: "Can mobile IV hydration come to my hotel or Airbnb?" },
+      {
+        type: "p",
+        text: "Yes. Avida Luna Wellness provides mobile IV hydration at hotels, Airbnbs, and vacation rentals in its service area, subject to scheduling and location suitability.",
+      },
+      { type: "h3", text: "How long does a mobile IV hydration appointment take?" },
+      {
+        type: "p",
+        text: "Unless medically necessary to do otherwise, all infusions use an IV bag that typically takes 30–45 minutes to complete. This makes it easy to fit an appointment into your busy schedule without setting aside your entire day.",
+      },
+      { type: "h3", text: "Where is mobile IV hydration available?" },
+      {
+        type: "p",
+        text: "Avida Luna Wellness offers mobile IV hydration throughout the Sarasota and Bradenton areas, including homes, offices, hotels, and other suitable locations.",
+      },
+    ],
+    sources: [],
+    image: null,
+    publishedAt: "2026-11-03",
+  },
+  {
     id: "article-understanding-iv-therapy",
     slug: "understanding-iv-therapy",
-    title: "Understanding IV Therapy",
+    title: "Understanding IV Therapy: How Intravenous Nutrients Support Hydration and Wellness",
     summary:
       "A plain-language look at what a mobile IV visit is and what to expect.",
     body: [
+      {
+        type: "p",
+        text: "Intravenous (IV) therapy has been used in clinical medicine for decades to support hydration, nutrient repletion, and recovery when oral intake is insufficient or absorption is compromised. By delivering fluids and essential nutrients directly into the bloodstream, IV therapy bypasses the digestive system, allowing for rapid and efficient availability at the cellular level.",
+      },
       {
         type: "p",
         text: "A mobile IV visit brings nursing care to your location. Booking starts with your name and email on this website. Service selection, scheduling and confidential health screening happen on our secure, HIPAA-compliant booking page. Before an IV begins, Shary reviews your screening with you and checks that the service is a good fit. She stays with you throughout the visit.",
@@ -311,7 +526,7 @@ export const articles: Article[] = [
     sources: [],
     image: null,
     publishedAt: "2026-11-01",
-    todo: "Migrate the full article text and exact title from the current site, plus the PubMed source URL from Shary.",
+    todo: "Migrate the rest of the article text from the current site, plus the PubMed source URL from Shary.",
   },
 ];
 

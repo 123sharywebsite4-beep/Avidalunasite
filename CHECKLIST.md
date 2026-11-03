@@ -18,6 +18,12 @@ Things the code can't do for us, in roughly the order to do them. Every service 
       `cd studio && npm run seed` (`--replace` overwrites seeded documents with the same IDs).
       **Only for an empty dataset.** Once Shary has edited anything, never re-run it: use a one-off update script like the one below.
 
+### November 2026 wellness education articles (one-off)
+Adds the new article "Mobile IV Hydration for Busy Schedules" and, on "Understanding IV Therapy", sets the full title and adds the opening paragraph at the top. Nothing else Shary wrote is changed. Safe to run twice.
+- [ ] Dry run (writes nothing): `cd studio && npx sanity exec scripts/add-wellness-articles.ts --with-user-token`
+- [ ] Apply: `cd studio && npx sanity exec scripts/add-wellness-articles.ts --with-user-token -- --apply`
+- [ ] Check https://www.avidaluna.com/wellness-education shows both articles.
+
 ### November 2026 pricing, packages and booking update (one-off)
 Updates only the documents and fields in Shary's pricing spec (service names and prices, restorative prices and enhancement prices, compression boots and the Vitamin Wellness Spray, the eight packages, travel and IV timing in Contact info, the affected FAQ answers and page text). Everything else Shary edited is left alone. The "Recovery add-on" placeholder is hidden, not deleted. If a document has an unpublished draft, the draft gets the same fields.
 - [ ] Deploy the Studio first, so the new **Packages** menu and fields exist: `cd studio && npx sanity deploy`
