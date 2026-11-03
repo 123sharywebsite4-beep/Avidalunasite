@@ -453,9 +453,9 @@ export const faqs: Faq[] = [
   {
     id: "faq-svc-screening",
     placement: "services",
-    question: "Do I need a health screening for an IV or injection?",
+    question: "Do I need a health screening for services?",
     answer:
-      "Yes, for every IV and injection. You complete a confidential, HIPAA-compliant screening when you book, and Shary reviews it and assesses you in person before anything begins. If a service isn't a good fit for you, she'll tell you.",
+      "Yes. To keep you safe, medical consultations are required for our treatments:\n* IVs & Injections: A telehealth medical consultation is conducted with a medical provider every 6 months.\n* Peptide Support: Peptide protocols have separate consultation guidelines. Please check in with Shary to discuss your specific protocol details.",
   },
 ];
 

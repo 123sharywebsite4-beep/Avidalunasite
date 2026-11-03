@@ -662,6 +662,14 @@
   padding-bottom: 25px;
   color: #53604f;
 }
+.home-faq details > ul {
+  font-size: 14px;
+  padding-bottom: 25px;
+  color: #53604f;
+}
+.home-faq details > p:has(+ p, + ul) {
+  padding-bottom: 0;
+}
 .home-faq summary > span {
   font-size: 22px;
 }
