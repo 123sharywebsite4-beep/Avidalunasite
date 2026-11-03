@@ -347,10 +347,15 @@ export function IntakeForm({
         className="card p-6 outline-none md:p-8"
         data-testid="join-success"
       >
-        <h2 className="text-3xl">You&apos;re on the list.</h2>
+        <h2 className="text-3xl">I&apos;m glad you&apos;re here.</h2>
         <p className="mt-3">
-          Thanks for joining. Watch your inbox for your free copy of Wellness
-          Notes from a Nurse.
+          Thank you for requesting your complimentary copy of Wellness Notes
+          from a Nurse. It&apos;s on its way to your inbox.
+        </p>
+        <p className="mt-3">
+          Inside you&apos;ll find thoughtful insights and practical reminders
+          designed to support your long-term health, one intentional choice at
+          a time.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link href="/book" className="btn btn-primary">
