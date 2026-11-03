@@ -32,6 +32,16 @@ export const siteSettings: SiteSettings = {
   // TODO: Shary to confirm a typical total appointment length for an IV visit.
   ivAppointmentTime:
     "Longer than the infusion. Allow extra time for your consultation, setup and any enhancements, which are done separately.",
+  leadMagnet: {
+    // Hidden until Shary turns it on in Studio (Contact info → Free guide signup).
+    enabled: false,
+    heading: "Wellness Notes from a Nurse",
+    description:
+      "Thoughtful insights and practical reminders to support your long-term health, one intentional choice at a time.",
+    buttonLabel: "Get your free copy",
+    successMessage:
+      "Thank you for requesting your complimentary copy of Wellness Notes from a Nurse. It's on its way to your inbox.",
+  },
 };
 
 // Communities shown as tags in the home page "Where we provide care" section.

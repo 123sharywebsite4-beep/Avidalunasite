@@ -1,4 +1,15 @@
 import { defineField, defineType } from "sanity";
+import { complianceCheck } from "../lib/compliance";
+
+const leadMagnetText = (name: string, title: string, description: string, rows?: number) =>
+  defineField({
+    name,
+    title,
+    type: rows ? "text" : "string",
+    ...(rows ? { rows } : {}),
+    description: `${description} Leave empty to use the default.`,
+    validation: (rule) => [rule.max(rows ? 300 : 80), rule.custom(complianceCheck).warning()],
+  });
 
 export const siteSettings = defineType({
   name: "siteSettings",
@@ -66,6 +77,27 @@ export const siteSettings = defineType({
       rows: 2,
       description: "Shown separately from the infusion time. The full visit, including consultation, setup and any enhancements.",
       validation: (rule) => rule.max(200),
+    }),
+    defineField({
+      name: "leadMagnet",
+      title: "Free guide signup",
+      type: "object",
+      description:
+        "The email signup block for your free guide, shown on the home page above the footer. Signups go to Mailchimp with SOURCE “lead-magnet”.",
+      options: { collapsible: true, collapsed: false },
+      fields: [
+        defineField({
+          name: "enabled",
+          title: "Show on the website",
+          type: "boolean",
+          description: "Off until you turn it on. Turn off to hide the block without losing your text.",
+          initialValue: false,
+        }),
+        leadMagnetText("heading", "Heading", "e.g. “Wellness Notes from a Nurse”."),
+        leadMagnetText("description", "Description", "One or two sentences under the heading.", 3),
+        leadMagnetText("buttonLabel", "Button text", "e.g. “Get your free copy”."),
+        leadMagnetText("successMessage", "Thank-you message", "Shown after someone signs up.", 3),
+      ],
     }),
   ],
   preview: { prepare: () => ({ title: "Contact info" }) },
