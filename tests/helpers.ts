@@ -13,6 +13,7 @@ export const PUBLIC_PAGES = [
   "/events",
   "/wellness-education",
   "/wellness-education/understanding-iv-therapy",
+  "/wellness-education/mobile-iv-hydration-for-busy-schedules",
   "/about",
   "/faq",
   "/contact",
