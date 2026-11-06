@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   applicationName: BRAND_NAME,
   robots: allowIndexing ? undefined : { index: false, follow: false },
   formatDetection: { telephone: false },
+  verification: {
+    google: "vwtIJq8N2vjqKJF7b7GItLi6DWeKJQJU1j1DrXnGsNA",
+  },
 };
 
 export const viewport: Viewport = {
