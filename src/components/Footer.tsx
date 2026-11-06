@@ -80,7 +80,6 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 
         <div className="container-page border-t border-cream/20 py-6 text-[0.9375rem]">
           <p className="prose-width">{settings.footerNote}</p>
-          <Todo className="mt-2">Shary to confirm the footer note wording.</Todo>
           <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <p>
               © {year} {LEGAL_LINE}. Lakewood Ranch, FL.
