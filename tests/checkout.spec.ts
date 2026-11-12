@@ -85,7 +85,7 @@ test.describe("add-on checkout", () => {
     expect(form.get("line_items[0][quantity]")).toBe("2");
     expect(form.get("line_items[0][price_data][currency]")).toBe("usd");
     expect(form.get("mode")).toBe("payment");
-    expect(form.get("custom_fields[0][label][custom]")).toBe("Appointment date");
+    expect(form.get("custom_fields[0][label][custom]")).toBe("Appointment date (MM/DD/YYYY)");
     expect(form.get("custom_fields[0][optional]")).toBe("false");
   });
 

@@ -28,7 +28,7 @@ export async function POST(req: Request) {
         session: session.id,
         selection: session.metadata.selection ?? "",
         extras: session.metadata.extras ?? "",
-        preferredTime: session.metadata.preferredTime ?? "",
+        preferredTime: session.metadata.preferredTimeFlorida ?? session.metadata.preferredTime ?? "",
         amount: session.amount_total,
         paid: session.payment_status,
       });

@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { addToList } from "@/lib/mailchimp-signup";
+import { formatUsDate } from "@/lib/restorative";
 import { eventTypes, fieldErrors, groupRequestSchema, groupSizes } from "@/lib/validation";
 import { CheckboxField, FormError, Honeypot, SelectField, TextAreaField, TextField } from "./fields";
 import { HONEYPOT, readForm, splitName, submitNetlifyForm } from "./submit";
+import { UsDateField } from "./UsDateField";
 
 /** Sent to Netlify Forms as "group-request", which emails it to Shary. */
 export function GroupRequestForm({ minDate, contactEmail }: { minDate: string; contactEmail: string }) {
@@ -46,7 +48,8 @@ export function GroupRequestForm({ minDate, contactEmail }: { minDate: string; c
       name: d.name,
       email: d.email,
       phone: d.phone,
-      eventDate: d.eventDate,
+      // Shary reads this in her email: "Saturday, December 5, 2026", not 2026-12-05.
+      eventDate: formatUsDate(d.eventDate),
       city: d.city,
       groupSize: d.groupSize,
       eventType: d.eventType,
@@ -80,7 +83,7 @@ export function GroupRequestForm({ minDate, contactEmail }: { minDate: string; c
         <TextField name="name" label="Name" required autoComplete="name" error={errors.name} />
         <TextField name="email" type="email" label="Email" required autoComplete="email" error={errors.email} />
         <TextField name="phone" type="tel" label="Phone" autoComplete="tel" maxLength={25} error={errors.phone} />
-        <TextField name="eventDate" type="date" label="Event date" required min={minDate} error={errors.eventDate} />
+        <UsDateField name="eventDate" label="Event date" minDate={minDate} error={errors.eventDate} />
         <TextField name="city" label="City" required autoComplete="address-level2" maxLength={80} error={errors.city} />
         <SelectField
           name="groupSize"

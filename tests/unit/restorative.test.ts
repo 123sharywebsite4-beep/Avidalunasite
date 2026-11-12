@@ -3,9 +3,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  bookingWindow,
+  BOOKING_HOURS,
+  bookableDays,
   floridaTimeToDate,
+  formatClock,
   formatPreferredTime,
+  formatUsDate,
   newReference,
   preferredTimeError,
   quoteRestorative,
@@ -132,21 +135,86 @@ describe("dates (Florida time)", () => {
     assert.equal(floridaTimeToDate("tomorrow"), null);
   });
 
-  it("needs at least 24 hours' notice and no more than 90 days", () => {
-    assert.match(preferredTimeError("2026-11-12T09:00", now)!, /already passed/);
-    assert.match(preferredTimeError("2026-11-13T09:59", now)!, /at least 24 hours/);
-    assert.equal(preferredTimeError("2026-11-13T10:00", now), null);
+  // The exact wording from the brief: plain and specific, never "invalid date".
+  const HOURS = "Please choose a time between 10:00 AM and 5:00 PM.";
+  const SOON = "Please choose a date at least 24 hours from now.";
+
+  it("keeps the rules in one place, at the agreed values", () => {
+    assert.deepEqual(
+      { ...BOOKING_HOURS },
+      { firstStart: "10:00", lastStart: "17:00", slotMinutes: 30, minHoursAhead: 24, maxDaysAhead: 90, timeZone: "America/New_York" },
+    );
+  });
+
+  it("refuses a date in the past", () => {
+    assert.equal(
+      preferredTimeError("2026-11-11T14:00", now),
+      "That date has already passed. Please choose a date at least 24 hours from now.",
+    );
+  });
+
+  it("refuses a time less than 24 hours away", () => {
+    assert.equal(preferredTimeError("2026-11-12T16:00", now), SOON);
+    // 10:00 AM tomorrow, a minute short of 24 hours.
+    assert.equal(preferredTimeError("2026-11-13T10:00", new Date("2026-11-12T15:01:00Z")), SOON);
+  });
+
+  it("refuses a date more than 90 days out", () => {
     assert.equal(preferredTimeError("2027-02-10T10:00", now), null);
-    assert.match(preferredTimeError("2027-02-11T10:01", now)!, /within the next 90 days/);
+    assert.equal(preferredTimeError("2027-02-11T10:00", now), "Please choose a date within the next 90 days.");
+  });
+
+  it("refuses times before 10 AM and after 5 PM (the 12:46 AM booking)", () => {
+    assert.equal(preferredTimeError("2026-11-20T00:46", now), HOURS);
+    assert.equal(preferredTimeError("2026-11-20T09:59", now), HOURS);
+    assert.equal(preferredTimeError("2026-11-20T17:01", now), HOURS);
+    assert.equal(preferredTimeError("2026-11-20T21:00", now), HOURS);
+  });
+
+  it("accepts a valid booking, including exactly 10:00 AM and 5:00 PM", () => {
+    assert.equal(preferredTimeError("2026-11-13T10:00", now), null);
+    assert.equal(preferredTimeError("2026-11-26T14:00", now), null);
+    assert.equal(preferredTimeError("2026-11-26T17:00", now), null);
+    // Summer (EDT) works the same in Florida wall-clock terms.
+    assert.equal(preferredTimeError("2027-03-20T10:00", new Date("2027-03-01T15:00:00Z")), null);
+  });
+
+  it("refuses a missing or impossible date", () => {
     assert.equal(preferredTimeError("", now), "Please choose a date and time.");
+    assert.equal(preferredTimeError("2026-11-31T10:00", now), "Please choose a date and time.");
   });
 
-  it("gives the date field matching limits", () => {
-    assert.deepEqual(bookingWindow(now), { min: "2026-11-13T10:00", max: "2027-02-10T10:00" });
+  it("only offers times that pass the rules", () => {
+    const days = bookableDays(now);
+    // Tomorrow from 10:00 AM (exactly 24 hours), through day 90.
+    assert.equal(days[0].date, "2026-11-13");
+    assert.equal(days[0].times[0].label, "10:00 AM");
+    assert.equal(days.at(-1)!.date, "2027-02-10");
+    assert.deepEqual(days.at(-1)!.times.map((t) => t.label), ["10:00 AM"]);
+    assert.equal(days[1].label, "Saturday, November 14, 2026");
+    assert.deepEqual(
+      days[1].times.map((t) => t.label),
+      ["10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM"],
+    );
+    for (const d of days) for (const t of d.times) assert.equal(preferredTimeError(`${d.date}T${t.value}`, now), null);
+    // After 5 PM Florida time, tomorrow has nothing left 24 hours out, so it isn't offered.
+    assert.equal(bookableDays(new Date("2026-11-12T22:30:00Z"))[0].date, "2026-11-14");
   });
 
-  it("formats the time for Shary and the client", () => {
-    assert.equal(formatPreferredTime("2030-05-04T14:30"), "Saturday, May 4, 2030 at 2:30 PM (Florida time)");
+  it("works out 'now' in Florida, not the device's time zone", () => {
+    // 11:30 PM Nov 12 in Florida is already Nov 13 in UTC (and in Europe): the first day is still Nov 13 + 24h.
+    const lateNight = new Date("2026-11-13T04:30:00Z");
+    assert.equal(bookableDays(lateNight)[0].date, "2026-11-14");
+  });
+
+  it("formats dates and times US style, with no time zone shift", () => {
+    assert.equal(formatPreferredTime("2026-11-26T14:00"), "Thursday, November 26, 2026 at 2:00 PM (Florida time)");
+    assert.equal(formatPreferredTime("2030-05-04T10:00"), "Saturday, May 4, 2030 at 10:00 AM (Florida time)");
+    assert.equal(formatUsDate("2026-12-05"), "Saturday, December 5, 2026");
+    assert.equal(formatClock("12:00"), "12:00 PM");
+    assert.equal(formatClock("00:46"), "12:46 AM");
+    // Plain spaces only (browsers put a narrow no-break space before AM/PM).
+    assert.doesNotMatch(formatPreferredTime("2026-11-26T14:00"), /[\u202f\u00a0]/);
   });
 });
 
