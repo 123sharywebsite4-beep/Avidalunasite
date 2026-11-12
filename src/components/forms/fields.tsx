@@ -150,7 +150,13 @@ export function TextAreaField({ maxLength = 1000, ...p }: Common & { maxLength?:
   );
 }
 
-export function CheckboxField({ name, label, required, error }: Omit<Common, "hint">) {
+export function CheckboxField({
+  name,
+  label,
+  required,
+  error,
+  defaultChecked,
+}: Omit<Common, "hint"> & { defaultChecked?: boolean }) {
   const id = useId();
   return (
     <div>
@@ -160,6 +166,7 @@ export function CheckboxField({ name, label, required, error }: Omit<Common, "hi
           name={name}
           type="checkbox"
           required={required}
+          defaultChecked={defaultChecked}
           className="mt-1 size-5 shrink-0 accent-olive"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}

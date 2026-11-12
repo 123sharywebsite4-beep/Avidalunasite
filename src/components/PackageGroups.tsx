@@ -29,11 +29,14 @@ export function PackageGroups({
   packages,
   settings,
   sections,
+  paymentsOn,
   headingLevel = "h2",
 }: {
   packages: WellnessPackage[];
   settings: SiteSettings;
   sections: Record<string, { heading?: string; text?: string }>;
+  /** Online payment (Stripe) is on: restorative visits are paid when booked, not at the visit. */
+  paymentsOn: boolean;
   headingLevel?: "h2" | "h3";
 }) {
   const Heading = headingLevel;
@@ -61,7 +64,7 @@ export function PackageGroups({
               ))}
             </div>
             <div className="iv-note">
-              <GroupNote type={g.type} settings={settings} />
+              <GroupNote type={g.type} settings={settings} paymentsOn={paymentsOn} />
             </div>
           </section>
         );
@@ -70,16 +73,26 @@ export function PackageGroups({
   );
 }
 
-function GroupNote({ type, settings }: { type: WellnessPackage["type"]; settings: SiteSettings }) {
+function GroupNote({
+  type,
+  settings,
+  paymentsOn,
+}: {
+  type: WellnessPackage["type"];
+  settings: SiteSettings;
+  paymentsOn: boolean;
+}) {
   if (type === "restorative") {
     return (
       <>
         <p>
           A {formatPrice(settings.travelFee)} travel fee applies once per appointment. You&apos;ll see it and your
-          total before you send your request, and you pay at your visit.
+          total before you book, and you{" "}
+          {paymentsOn ? "pay securely online when you book" : "pay at your visit"}. Shary confirms your time by text
+          or email.
         </p>
         <p>
-          Just one service? <Link href="/book?restorative=1">Request a restorative visit</Link>.
+          Just one service? <Link href="/book/restorative">Book a restorative visit</Link>.
         </p>
       </>
     );

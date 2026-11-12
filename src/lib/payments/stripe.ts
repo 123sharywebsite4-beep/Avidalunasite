@@ -1,6 +1,6 @@
 import "server-only";
 import Stripe from "stripe";
-import type { AddOnPaymentProvider, PaidSummary } from "./types";
+import type { PaidSummary, PaymentProvider } from "./types";
 
 let client: Stripe | null = null;
 
@@ -25,8 +25,11 @@ export function stripeClient(): Stripe | null {
   return client;
 }
 
-export const stripeProvider: AddOnPaymentProvider = {
-  async createCheckout(lines, { email, successUrl, cancelUrl }) {
+/** Checkout links expire after this long (Stripe's minimum is 30 minutes). */
+const SESSION_MINUTES = 45;
+
+export const stripeProvider: PaymentProvider = {
+  async createCheckout(lines, { email, successUrl, cancelUrl, metadata, askAppointmentDate, reference, description }) {
     const stripe = stripeClient();
     if (!stripe) throw new Error("Stripe is not configured");
     const session = await stripe.checkout.sessions.create({
@@ -40,18 +43,28 @@ export const stripeProvider: AddOnPaymentProvider = {
         },
       })),
       ...(email ? { customer_email: email } : {}),
-      custom_fields: [
-        {
-          key: "appointmentdate",
-          label: { type: "custom", custom: "Appointment date" },
-          type: "text",
-          optional: false,
-        },
-      ],
-      // Only ids and quantities, so the webhook can log what was bought. No personal data.
-      metadata: {
-        addons: lines.map((l) => `${l.id}x${l.quantity}`).join(",").slice(0, 500),
-      },
+      ...(askAppointmentDate
+        ? {
+            custom_fields: [
+              {
+                key: "appointmentdate",
+                label: { type: "custom" as const, custom: "Appointment date" },
+                type: "text" as const,
+                optional: false,
+              },
+            ],
+          }
+        : {}),
+      // Ids, quantities, the date and the reference, so the webhook and Shary can match the
+      // payment to the booking. No names, phone numbers or addresses.
+      metadata,
+      ...(reference
+        ? {
+            client_reference_id: reference,
+            expires_at: Math.floor(Date.now() / 1000) + SESSION_MINUTES * 60,
+            payment_intent_data: { description, metadata },
+          }
+        : {}),
       success_url: successUrl,
       cancel_url: cancelUrl,
     });
@@ -72,6 +85,9 @@ export const stripeProvider: AddOnPaymentProvider = {
           amountCents: li.amount_total,
         })),
         totalCents: session.amount_total ?? 0,
+        kind: session.metadata?.kind ?? null,
+        reference: session.metadata?.reference ?? null,
+        preferredTime: session.metadata?.preferredTime ?? null,
       };
       return summary;
     } catch (error) {

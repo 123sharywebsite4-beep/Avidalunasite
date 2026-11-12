@@ -26,7 +26,7 @@ export default async function SuccessPage({
       : null;
   const summary = id ? await getPaidSummary(id) : null;
 
-  if (!summary || !summary.paid) {
+  if (!summary || !summary.paid || summary.kind === "restorative") {
     return (
       <section className="container-page max-w-2xl py-14">
         <div className="state-card card p-6 md:p-8">

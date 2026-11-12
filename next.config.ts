@@ -25,6 +25,9 @@ const legacyRedirects: Array<[string, string]> = [
 ];
 
 const nextConfig: NextConfig = {
+  // Tests only: the Playwright suite builds a second copy without Stripe keys into another folder
+  // (see playwright.config.ts). Never set NEXT_DIST_DIR on Netlify.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   env: {
     BRAND_LOGO: brandFile("logo"),
@@ -45,11 +48,28 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "cdn.sanity.io" }],
   },
   async redirects() {
-    return legacyRedirects.map(([source, destination]) => ({
-      source,
-      destination,
-      statusCode: 301 as const,
-    }));
+    return [
+      ...legacyRedirects.map(([source, destination]) => ({
+        source,
+        destination,
+        statusCode: 301 as const,
+      })),
+      // Restorative visits moved to their own page. The query string is passed through, so
+      // /book?package=luna-light lands on /book/restorative?package=luna-light (package preselected).
+      // Restorative packages with other slugs are moved in the browser (BookingRouter).
+      {
+        source: "/book",
+        has: [{ type: "query" as const, key: "restorative" }],
+        destination: "/book/restorative",
+        permanent: false,
+      },
+      {
+        source: "/book",
+        has: [{ type: "query" as const, key: "package", value: "luna-.*" }],
+        destination: "/book/restorative",
+        permanent: false,
+      },
+    ];
   },
   async headers() {
     const noindex = [{ key: "X-Robots-Tag", value: "noindex" }];

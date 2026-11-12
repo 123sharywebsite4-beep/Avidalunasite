@@ -1,14 +1,15 @@
 import "server-only";
-import { getAddOnsForCheckout } from "../content";
+import { getAddOnsForCheckout, getRestorativeCatalogLive } from "../content";
 import { enhancementPrice } from "../packages";
-import { MAX_ADDON_QUANTITY } from "../validation";
+import { formatPreferredTime, newReference, quoteRestorative } from "../restorative";
+import { MAX_ADDON_QUANTITY, type RestorativeCheckoutInput } from "../validation";
 import { stripeClient, stripeProvider } from "./stripe";
-import type { AddOnPaymentProvider, CheckoutSession, PricedLine } from "./types";
+import type { CheckoutSession, PaymentProvider, PricedLine } from "./types";
 
 export type { PaidSummary } from "./types";
 
 /** Swap this to change processors. Everything else talks to the interface. */
-const provider: AddOnPaymentProvider = stripeProvider;
+const provider: PaymentProvider = stripeProvider;
 
 export const paymentsEnabled = () => stripeClient() !== null;
 
@@ -60,7 +61,52 @@ export async function createAddOnCheckout(
   opts: { successUrl: string; cancelUrl: string },
 ): Promise<CheckoutSession> {
   const lines = await priceAddOns(items);
-  return provider.createCheckout(lines, { email: email || undefined, ...opts });
+  return provider.createCheckout(lines, {
+    email: email || undefined,
+    ...opts,
+    // Only ids and quantities, so the webhook can log what was bought. No personal data.
+    metadata: { addons: lines.map((l) => `${l.id}x${l.quantity}`).join(",").slice(0, 500) },
+    askAppointmentDate: true,
+  });
+}
+
+const QUOTE_ERRORS = {
+  "unknown-choice": "This package or service isn't available to book right now. Please refresh the page and choose again.",
+  "unavailable-extra": "One of these enhancements is no longer available. Please refresh the page.",
+  "invalid-price": "One of these has no valid price yet. Please call or text Shary to book.",
+} as const;
+
+/**
+ * Restorative visit: prices the choice, enhancements and travel fee from Sanity (live read) and
+ * opens a hosted checkout tagged with the booking reference. Returns 409 if anything is no longer
+ * bookable or the total differs from the one the person saw.
+ */
+export async function createRestorativeCheckout(
+  input: RestorativeCheckoutInput,
+  opts: { successUrl: string; cancelUrl: string },
+): Promise<{ url: string; reference: string; totalCents: number }> {
+  const result = quoteRestorative(input, await getRestorativeCatalogLive());
+  if (!result.ok) throw new CheckoutError(QUOTE_ERRORS[result.problem], 409);
+  const { quote } = result;
+  if (quote.totalCents !== input.shownTotalCents) {
+    throw new CheckoutError("Prices have changed since this page loaded. Please refresh the page to see the current total.", 409);
+  }
+  const reference = input.reference ?? newReference();
+  const session = await provider.createCheckout(quote.lines, {
+    email: input.email,
+    successUrl: opts.successUrl,
+    cancelUrl: opts.cancelUrl,
+    reference,
+    description: `Restorative visit ${reference}: ${quote.main.name}, ${formatPreferredTime(input.preferredTime)}`.slice(0, 400),
+    metadata: {
+      kind: "restorative",
+      reference,
+      selection: input.selection,
+      extras: quote.extras.map((e) => e.addOn.id).join(",").slice(0, 500),
+      preferredTime: input.preferredTime,
+    },
+  });
+  return { url: session.url, reference, totalCents: quote.totalCents };
 }
 
 export function getPaidSummary(sessionId: string) {

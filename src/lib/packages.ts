@@ -2,7 +2,9 @@
 // so the numbers shown on cards, in booking and in the emails to Shary always agree.
 //
 // Rules from Shary: one-time bookings only (no memberships, recurring billing or prepaid series).
-// IVs and IM injections are booked, screened and paid on Hydreight. Everything else is paid at the visit.
+// IVs and IM injections are booked, screened and paid on Hydreight. Restorative-only visits are paid
+// online when booked (/book/restorative) once Stripe is on, otherwise at the visit. Enhancements to an
+// IV visit are paid at the visit (or online on /add-ons).
 
 import type { AddOn, PackageItem, PackageType, Service, WellnessPackage } from "./types";
 
@@ -105,17 +107,4 @@ export function availableEnhancements(addOns: AddOn[], pkg?: WellnessPackage | n
   return addOns.filter((a) => !a.todo && !included.has(a.id));
 }
 
-/**
- * Restorative-only visit (no IV or injection): one main choice (a Luna package at its price,
- * or a single service/product at its standalone price), extras at enhancement prices, and the
- * travel fee once per appointment.
- */
-export function restorativeTotal(
-  main: { price: number } | null,
-  extras: AddOn[],
-  travelFee: number,
-): { subtotal: number; travelFee: number; total: number } {
-  if (!main) return { subtotal: 0, travelFee: 0, total: 0 };
-  const subtotal = main.price + extras.reduce((sum, a) => sum + enhancementPrice(a), 0);
-  return { subtotal, travelFee, total: subtotal + travelFee };
-}
+// Restorative-only visit pricing lives in ./restorative.ts (shared by the form and the checkout API).

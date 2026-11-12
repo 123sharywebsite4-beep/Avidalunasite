@@ -2,6 +2,9 @@ import { test as base, expect, type Page, type APIRequestContext } from "@playwr
 
 export const MOCK = "http://localhost:3299";
 
+/** The second test build, without Stripe keys (online payment off). Port: NO_PAYMENTS_PORT in playwright.config.ts. */
+export const NO_PAYMENTS = "http://localhost:3201";
+
 /** Shary's Mailchimp signup host (the default in src/lib/constants.ts). */
 export const MAILCHIMP_HOST = "https://avidaluna.us22.list-manage.com";
 
@@ -18,6 +21,8 @@ export const PUBLIC_PAGES = [
   "/faq",
   "/contact",
   "/book",
+  "/book/restorative",
+  "/book/restorative/cancel",
   "/join",
   "/privacy",
   "/terms",

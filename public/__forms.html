@@ -14,7 +14,8 @@
     group-request     src/components/forms/GroupRequestForm.tsx
     add-ons-at-visit  src/components/AddOnPicker.tsx ("Pay at my visit" on /add-ons)
     booking-extras    src/components/AddOnPicker.tsx ("Pay at my visit" on /book step 3: package + enhancements)
-    restorative-request  src/components/forms/RestorativeRequestForm.tsx (restorative-only visits)
+    restorative-request  src/components/forms/RestorativeRequestForm.tsx (restorative-only visits, /book/restorative;
+                      "payment" says pay online or at the visit, "reference" matches the Stripe payment)
   No health fields, ever. Netlify emails each submission to Shary (Netlify UI > Forms > notifications).
 -->
 <form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
@@ -73,9 +74,9 @@
   <textarea name="enhancements"></textarea>
   <input type="text" name="travelFee">
   <input type="text" name="total">
-  <input type="text" name="preferred1">
-  <input type="text" name="preferred2">
-  <input type="text" name="preferred3">
+  <input type="text" name="preferredTime">
+  <input type="text" name="payment">
+  <input type="text" name="reference">
   <input type="text" name="optIn">
 </form>
 </body>

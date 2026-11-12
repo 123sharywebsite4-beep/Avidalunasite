@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPageView } from "@/components/LegalPageView";
 import { getLegalPage } from "@/lib/content";
+import { paymentsEnabled } from "@/lib/payments";
 import { pageMetadata } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -14,5 +15,5 @@ export const metadata: Metadata = pageMetadata({
 
 // The text is edited in Sanity under "Legal pages". Default text: content/legal.ts.
 export default async function TermsPage() {
-  return <LegalPageView page={await getLegalPage("terms")} />;
+  return <LegalPageView page={await getLegalPage("terms", { onlinePayment: paymentsEnabled() })} />;
 }

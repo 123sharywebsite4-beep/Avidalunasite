@@ -32,7 +32,7 @@ export default async function AddOnsPage() {
         <p className="mt-3 text-[0.9375rem]">
           Haven&apos;t booked yet?{" "}
           <Link href="/book">Book an appointment first</Link>, or{" "}
-          <Link href="/book?restorative=1">request a restorative visit</Link>.
+          <Link href="/book/restorative">book a restorative visit</Link>.
         </p>
       </PageHero>
       <section className="container-page py-10 md:py-14">
