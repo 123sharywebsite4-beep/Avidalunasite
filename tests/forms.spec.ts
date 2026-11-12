@@ -74,7 +74,11 @@ test.describe("group event request (Netlify form \"group-request\")", () => {
     const form = page.getByRole("form", { name: "Group event request" });
     await form.getByLabel("Name", { exact: true }).fill("Ana Rivera");
     await form.getByLabel("Email", { exact: true }).fill("ana@example.com");
-    await form.getByLabel("Event date").fill("2030-05-04");
+    // Month first, as dropdowns: no locale-dependent native date picker.
+    const date = form.getByRole("group", { name: "Event date" });
+    await date.getByLabel("Month").selectOption({ label: "May" });
+    await date.getByLabel("Day").selectOption("4");
+    await date.getByLabel("Year").selectOption(String(new Date().getFullYear() + 1));
     await form.getByLabel("City").fill("Sarasota");
     await form.getByLabel("Approximate group size").selectOption("6 to 10");
     await form.getByLabel("Event type").selectOption("Birthday");
@@ -92,7 +96,10 @@ test.describe("group event request (Netlify form \"group-request\")", () => {
       name: "Ana Rivera",
       email: "ana@example.com",
       phone: "",
-      eventDate: "2030-05-04",
+      // US format in Shary's email, the exact day picked.
+      eventDate: new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(
+        new Date(Date.UTC(new Date().getFullYear() + 1, 4, 4)),
+      ),
       city: "Sarasota",
       groupSize: "6 to 10",
       eventType: "Birthday",

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { preferredTimeError, REFERENCE_PATTERN } from "./restorative";
+import { preferredTimeError, REFERENCE_PATTERN, toFloridaTime } from "./restorative";
 
 // Form schemas, checked in the browser before anything is sent (Netlify Forms, Mailchimp)
 // and, for checkout, again on the server. None of these accept health information: there
@@ -65,7 +65,14 @@ export const groupRequestSchema = z.object({
   name,
   email,
   phone,
-  eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose a date."),
+  eventDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose the month, day and year.")
+    .refine((v) => {
+      const [y, m, d] = v.split("-").map(Number);
+      return new Date(Date.UTC(y, m - 1, d)).getUTCDate() === d;
+    }, "That date doesn't exist. Please check the day.")
+    .refine((v) => v >= toFloridaTime(new Date()).slice(0, 10), "Please choose a date that hasn't passed."),
   city: shortText(80).min(1, "Please enter the city."),
   groupSize: z.enum(groupSizes, { error: "Please choose a group size." }),
   eventType: z.enum(eventTypes, { error: "Please choose an event type." }),
@@ -101,7 +108,11 @@ export type AtVisitInput = z.infer<typeof atVisitSchema>;
 /** "Pay at my visit" from /book step 3: also the last name, for the "booking-extras" email to Shary. */
 export const bookingExtrasSchema = atVisitSchema.extend({ lastName: name });
 
-/** One preferred date and time, in Florida time, inside BOOKING_DATE_RULES. Checked when parsed. */
+/**
+ * One preferred date and time, Florida wall-clock "YYYY-MM-DDTHH:mm", inside BOOKING_HOURS
+ * (10 AM to 5 PM, 24 hours' notice, 90 days out). Checked here on the server too, so the rules
+ * can't be bypassed by posting to the API directly.
+ */
 const preferredTime = z
   .string()
   .trim()

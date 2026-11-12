@@ -7,32 +7,54 @@
 import type { AddOn, WellnessPackage } from "./types";
 
 /**
- * Which dates and times the booking form accepts. This is input checking, not a booking policy:
- * Shary can change these numbers. Times are entered and shown in Florida time.
- * TODO (Shary): confirm the earliest notice, the furthest date out, and any days or hours she doesn't work.
+ * BOOKING HOURS. Shary can change any of these numbers later; nothing else needs to change.
+ * The form only offers times inside these rules, and the server checks them again on every
+ * request, so they can't be bypassed. All times are Florida time (America/New_York), whatever
+ * the visitor's own device or time zone says.
+ * Days of the week aren't restricted yet (TODO (Shary): any days she doesn't work).
  */
-export const BOOKING_DATE_RULES = {
-  /** At least this many hours from now. */
+export const BOOKING_HOURS = {
+  /** Earliest appointment start, 24-hour "HH:mm" (10:00 = 10:00 AM). */
+  firstStart: "10:00",
+  /** Latest appointment start, 24-hour "HH:mm" (17:00 = 5:00 PM). */
+  lastStart: "17:00",
+  /** Gap between the start times the form offers, in minutes. */
+  slotMinutes: 30,
+  /** At least this many hours' notice. */
   minHoursAhead: 24,
-  /** No more than this many days from now. */
+  /** No more than this many days ahead. */
   maxDaysAhead: 90,
-  /** Shary's time zone. Every time on the form is in this zone. */
+  /** Shary's time zone. Every date and time on the site is in this zone. */
   timeZone: "America/New_York",
 } as const;
 
+/**
+ * The wire format for a preferred time: Florida wall-clock "YYYY-MM-DDTHH:mm". It is only ever
+ * read as Florida time, so it can't shift with anyone's time zone. People never see it: every
+ * place that shows a date uses formatPreferredTime / formatUsDate / formatClock below.
+ */
 const LOCAL_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+] as const;
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 
-/** Offset of BOOKING_DATE_RULES.timeZone from UTC at an instant, in minutes (e.g. -240 in summer). */
+const minutesOf = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
+
+/** Offset of BOOKING_HOURS.timeZone from UTC at an instant, in minutes (e.g. -240 in summer). */
+let zoneFormat: Intl.DateTimeFormat | null = null;
 function zoneOffsetMinutes(instant: Date): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: BOOKING_DATE_RULES.timeZone,
+  zoneFormat ??= new Intl.DateTimeFormat("en-US", {
+    timeZone: BOOKING_HOURS.timeZone,
     hourCycle: "h23",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  }).formatToParts(instant);
+  });
+  const parts = zoneFormat.formatToParts(instant);
   const n = (type: string) => Number(parts.find((p) => p.type === type)?.value);
   const asUtc = Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute"));
   return Math.round((asUtc - Math.floor(instant.getTime() / 60_000) * 60_000) / 60_000);
@@ -52,50 +74,85 @@ export function floridaTimeToDate(value: string): Date | null {
   return new Date(instant);
 }
 
-/** An instant as Florida wall-clock time, "YYYY-MM-DDTHH:mm" (the datetime-local format). */
+/** An instant as Florida wall-clock time, "YYYY-MM-DDTHH:mm". */
 export function toFloridaTime(instant: Date): string {
   const local = new Date(instant.getTime() + zoneOffsetMinutes(instant) * 60_000);
   return local.toISOString().slice(0, 16);
 }
 
-/** The earliest and latest values the date field accepts right now (for its min and max). */
-export function bookingWindow(now = new Date()): { min: string; max: string } {
-  const min = new Date(now.getTime() + BOOKING_DATE_RULES.minHoursAhead * 3_600_000);
-  const max = new Date(now.getTime() + BOOKING_DATE_RULES.maxDaysAhead * 86_400_000);
-  return { min: toFloridaTime(min), max: toFloridaTime(max) };
+/** "14:00" → "2:00 PM". Built by hand so it's always a plain space, never the browser's narrow one. */
+export function formatClock(hhmm: string): string {
+  const total = minutesOf(hhmm);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 }
 
-/** Null when the preferred time is acceptable, otherwise the message to show. */
-export function preferredTimeError(value: string, now = new Date()): string | null {
-  const when = floridaTimeToDate(value);
-  if (!when) return "Please choose a date and time.";
-  const hoursAhead = (when.getTime() - now.getTime()) / 3_600_000;
-  if (hoursAhead < 0) return "That time has already passed. Please choose a later one.";
-  if (hoursAhead < BOOKING_DATE_RULES.minHoursAhead) {
-    return `Please choose a time at least ${BOOKING_DATE_RULES.minHoursAhead} hours from now.`;
-  }
-  if (hoursAhead > BOOKING_DATE_RULES.maxDaysAhead * 24) {
-    return `Please choose a date within the next ${BOOKING_DATE_RULES.maxDaysAhead} days.`;
-  }
-  return null;
+/** "2026-11-26" → "Thursday, November 26, 2026". A calendar date: no time zone is involved. */
+export function formatUsDate(ymd: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!m) return ymd;
+  const [y, mo, d] = m.slice(1).map(Number);
+  const weekday = WEEKDAYS[new Date(Date.UTC(y, mo - 1, d)).getUTCDay()];
+  return `${weekday}, ${MONTHS[mo - 1]} ${d}, ${y}`;
 }
 
 /** "2030-05-04T10:00" → "Saturday, May 4, 2030 at 10:00 AM (Florida time)". */
 export function formatPreferredTime(value: string): string {
-  const m = LOCAL_TIME.exec(value);
-  if (!m) return value;
-  const [y, mo, d, h, mi] = m.slice(1).map(Number);
-  // The digits already are Florida wall-clock time: format them as-is, in UTC, with no conversion.
-  const wall = new Date(Date.UTC(y, mo - 1, d, h, mi));
-  const date = new Intl.DateTimeFormat("en-US", {
-    timeZone: "UTC",
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(wall);
-  const time = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", hour: "numeric", minute: "2-digit" }).format(wall);
-  return `${date} at ${time} (Florida time)`;
+  if (!LOCAL_TIME.test(value)) return value;
+  return `${formatUsDate(value.slice(0, 10))} at ${formatClock(value.slice(11))} (Florida time)`;
+}
+
+const RULE_MESSAGES = {
+  missing: "Please choose a date and time.",
+  hours: `Please choose a time between ${formatClock(BOOKING_HOURS.firstStart)} and ${formatClock(BOOKING_HOURS.lastStart)}.`,
+  past: `That date has already passed. Please choose a date at least ${BOOKING_HOURS.minHoursAhead} hours from now.`,
+  soon: `Please choose a date at least ${BOOKING_HOURS.minHoursAhead} hours from now.`,
+  far: `Please choose a date within the next ${BOOKING_HOURS.maxDaysAhead} days.`,
+} as const;
+
+/** Null when the preferred time is acceptable, otherwise the message to show. Used by browser and server. */
+export function preferredTimeError(value: string, now = new Date()): string | null {
+  const when = floridaTimeToDate(value);
+  if (!when) return RULE_MESSAGES.missing;
+  const hoursAhead = (when.getTime() - now.getTime()) / 3_600_000;
+  if (hoursAhead < 0) return RULE_MESSAGES.past;
+  const minute = minutesOf(value.slice(11));
+  if (minute < minutesOf(BOOKING_HOURS.firstStart) || minute > minutesOf(BOOKING_HOURS.lastStart)) {
+    return RULE_MESSAGES.hours;
+  }
+  if (hoursAhead < BOOKING_HOURS.minHoursAhead) return RULE_MESSAGES.soon;
+  if (hoursAhead > BOOKING_HOURS.maxDaysAhead * 24) return RULE_MESSAGES.far;
+  return null;
+}
+
+/** Every start time in the day, "10:00", "10:30", … "17:00". */
+export function dailyStartTimes(): string[] {
+  const out: string[] = [];
+  for (let t = minutesOf(BOOKING_HOURS.firstStart); t <= minutesOf(BOOKING_HOURS.lastStart); t += BOOKING_HOURS.slotMinutes) {
+    out.push(`${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
+  }
+  return out;
+}
+
+export type BookableDay = { date: string; label: string; times: { value: string; label: string }[] };
+
+/**
+ * The dates and times the form offers right now: only ones that pass preferredTimeError, so a
+ * person can't pick an invalid time. Days with no valid time left (e.g. tomorrow after 5 PM) are
+ * left out.
+ */
+export function bookableDays(now = new Date()): BookableDay[] {
+  const times = dailyStartTimes();
+  const firstDay = toFloridaTime(now).slice(0, 10);
+  const [y, mo, d] = firstDay.split("-").map(Number);
+  const days: BookableDay[] = [];
+  for (let i = 0; i <= BOOKING_HOURS.maxDaysAhead + 1; i++) {
+    const date = new Date(Date.UTC(y, mo - 1, d + i)).toISOString().slice(0, 10);
+    const ok = times.filter((t) => preferredTimeError(`${date}T${t}`, now) === null);
+    if (ok.length) days.push({ date, label: formatUsDate(date), times: ok.map((t) => ({ value: t, label: formatClock(t) })) });
+  }
+  return days;
 }
 
 /** Short booking reference shown to the client and to Shary, and stored on the Stripe payment. */
