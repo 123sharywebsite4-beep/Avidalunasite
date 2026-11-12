@@ -6,8 +6,10 @@ import { NO_MEDICAL_INFO_NOTE } from "@/lib/constants";
 import { formatPrice } from "@/lib/format";
 import { addToList } from "@/lib/mailchimp-signup";
 import {
-  BOOKING_DATE_RULES,
-  bookingWindow,
+  BOOKING_HOURS,
+  type BookableDay,
+  bookableDays,
+  formatClock,
   formatPreferredTime,
   newReference,
   offeredEnhancements,
@@ -18,6 +20,7 @@ import {
 import type { AddOn, WellnessPackage } from "@/lib/types";
 import { fieldErrors, restorativeRequestSchema } from "@/lib/validation";
 import { CheckboxField, FormError, Honeypot, TextField } from "./fields";
+import { PreferredTimeField } from "./PreferredTimeField";
 import { HONEYPOT, readForm, session, STORAGE, submitNetlifyForm } from "./submit";
 
 /** Everything typed into the form, saved before the redirect to Stripe so the cancel page can restore it. */
@@ -86,22 +89,28 @@ export function RestorativeRequestForm({
   const [selection, setSelection] = useState(choices.some((c) => c.value === start) ? start! : "");
   const [extras, setExtras] = useState<string[]>(draft?.extras ?? []);
   const [online, setOnline] = useState(paymentsEnabled);
-  const [dateWindow, setDateWindow] = useState<{ min: string; max: string } | null>(null);
+  const [days, setDays] = useState<BookableDay[] | null>(null);
+  const [date, setDate] = useState(draft?.preferredTime?.slice(0, 10) ?? "");
+  const [time, setTime] = useState(draft?.preferredTime?.slice(11, 16) ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [sent, setSent] = useState<{ reference: string; total: number; travelFee: number } | null>(null);
+  const [sent, setSent] = useState<{ reference: string; total: number; travelFee: number; when: string } | null>(null);
   const reference = useRef(draft?.reference ?? "");
   const successRef = useRef<HTMLDivElement>(null);
 
-  // The date field's limits depend on the current time, so they're set in the browser after load
-  // (the page itself is static). The same limits are checked again when the form is sent.
+  // Which dates and times can be offered depends on the current time, so the lists are built in
+  // the browser after load (the page itself is static). The server checks the same rules again.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the current time is only known in the browser
-    setDateWindow(bookingWindow());
+    setDays(bookableDays());
   }, []);
 
+  // Only a date and time still on offer counts: a saved one (after a cancelled checkout) that has
+  // since passed shows as unchosen and isn't resent.
+  const pickedDay = days?.find((d) => d.date === date);
+  const preferredTime = pickedDay?.times.some((t) => t.value === time) ? `${date}T${time}` : "";
   const main = choices.find((c) => c.value === selection) ?? null;
   const offered = offeredEnhancements(main, addOns);
   const chosenExtras = offered.filter((a) => extras.includes(a.id));
@@ -130,7 +139,7 @@ export function RestorativeRequestForm({
       cityZip: str("cityZip"),
       selection,
       extras: chosenExtras.map((a) => a.id),
-      preferredTime: str("preferredTime"),
+      preferredTime,
       optIn: bool("optIn"),
     });
     if (!parsed.success || !main || !quote) {
@@ -233,7 +242,12 @@ export function RestorativeRequestForm({
     session.set(STORAGE.firstName, d.firstName);
     session.set(STORAGE.lastName, d.lastName);
     if (!bot) void joinList();
-    setSent({ reference: reference.current, total: quote.total, travelFee: quote.travelFee });
+    setSent({
+      reference: reference.current,
+      total: quote.total,
+      travelFee: quote.travelFee,
+      when: formatPreferredTime(d.preferredTime),
+    });
     requestAnimationFrame(() => successRef.current?.focus());
   }
 
@@ -247,6 +261,9 @@ export function RestorativeRequestForm({
         data-testid="restorative-success"
       >
         <h2 className="text-3xl">Thanks! Shary will confirm your time by text or email.</h2>
+        <p className="mt-3" data-testid="restorative-when">
+          You asked for {sent.when}.
+        </p>
         <p className="mt-3">
           Your total of {formatPrice(sent.total)} (including the {formatPrice(sent.travelFee)} travel fee) is paid at
           your visit.
@@ -380,15 +397,13 @@ export function RestorativeRequestForm({
         defaultValue={draft?.cityZip}
         error={errors.cityZip}
       />
-      <TextField
-        name="preferredTime"
-        type="datetime-local"
-        label="Preferred date and time"
-        required
-        hint={`Florida time. At least ${BOOKING_DATE_RULES.minHoursAhead} hours from now and within the next ${BOOKING_DATE_RULES.maxDaysAhead} days.`}
-        min={dateWindow?.min}
-        max={dateWindow?.max}
-        defaultValue={draft?.preferredTime}
+      <PreferredTimeField
+        days={days}
+        date={date}
+        time={time}
+        onDate={setDate}
+        onTime={setTime}
+        hint={`Florida time. ${formatClock(BOOKING_HOURS.firstStart)} to ${formatClock(BOOKING_HOURS.lastStart)}, at least ${BOOKING_HOURS.minHoursAhead} hours from now and within the next ${BOOKING_HOURS.maxDaysAhead} days.`}
         error={errors.preferredTime}
       />
 

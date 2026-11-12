@@ -52,7 +52,9 @@ export function TextField({
   defaultValue,
   ...p
 }: Common & {
-  type?: "text" | "email" | "tel" | "date" | "datetime-local";
+  // No "date" or "datetime-local": browsers draw those in the device locale (day first in the UK/EU).
+  // Use UsDateField or PreferredTimeField instead.
+  type?: "text" | "email" | "tel";
   autoComplete?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   max?: string;

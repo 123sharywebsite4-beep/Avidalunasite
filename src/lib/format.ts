@@ -11,22 +11,22 @@ export function formatDuration(minutes: number | null): string | null {
 }
 
 export function formatEventDate(date: string): string {
-  // Dates are plain calendar dates in Florida; noon avoids timezone edge cases.
+  // A plain calendar date ("2026-11-26"): formatted as written, in UTC, so no device or server
+  // time zone can move it to the day before or after. -> "Thursday, November 26, 2026".
   return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-    timeZone: "America/New_York",
-  }).format(new Date(`${date}T12:00:00-05:00`));
+    timeZone: "UTC",
+  }).format(new Date(`${date}T12:00:00Z`));
 }
 
+/** "18:30" (Florida wall-clock, from Sanity) -> "6:30 PM". 12-hour, no time zone conversion. */
 export function formatTime(time: string | null): string | null {
   if (!time) return null;
   const [h, m] = time.split(":").map(Number);
-  const suffix = h >= 12 ? "pm" : "am";
-  const hour = h % 12 || 12;
-  return m ? `${hour}:${String(m).padStart(2, "0")}${suffix}` : `${hour}${suffix}`;
+  return `${h % 12 || 12}:${String(m || 0).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 }
 
 /** "2026-11-20" + "18:30" -> "2026-11-20T18:30:00-05:00" using Florida's offset on that date. */

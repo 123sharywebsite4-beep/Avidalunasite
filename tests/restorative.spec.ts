@@ -4,7 +4,7 @@ import { expect, expectMailchimpCall, mockRequests, NO_PAYMENTS, resetMock, test
 // Restorative-only visits on /book/restorative: Netlify form "restorative-request" first, then
 // Stripe (payments on, port 3200), or a pay-at-visit request (payments off, port 3201).
 
-/** A date and time in Florida, `days` from today, as the datetime-local field expects it. */
+/** A date and time in Florida, `days` from today, in the "YYYY-MM-DDTHH:mm" wire format. */
 function floridaTime(days: number, time = "10:00"): string {
   const d = new Date(Date.now() + days * 86_400_000);
   const date = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(d);
@@ -25,6 +25,12 @@ function floridaInHours(hours: number): string {
     .replace(" ", "T");
 }
 
+/** A time inside 10 AM to 5 PM that's still less than 24 hours away: today at 5 PM, or tomorrow at 10 AM. */
+function soonButInHours(): string {
+  const now = floridaInHours(0);
+  return now.slice(11) < "17:00" ? `${now.slice(0, 10)}T17:00` : floridaTime(1, "10:00");
+}
+
 const form = (page: Page) => page.getByRole("form", { name: "Book a restorative visit" });
 
 async function fillDetails(page: Page, when = floridaTime(5)) {
@@ -34,9 +40,22 @@ async function fillDetails(page: Page, when = floridaTime(5)) {
   await f.getByLabel("Email", { exact: true }).fill("ana@example.com");
   await f.getByLabel("Phone").fill("941 555 0100");
   await f.getByLabel("City or ZIP code").fill("34202");
-  await f.getByLabel("Preferred date and time").fill(when);
+  await pickTime(page, when);
   return f;
 }
+
+/** Chooses a "YYYY-MM-DDTHH:mm" Florida time in the two dropdowns. */
+async function pickTime(page: Page, when: string) {
+  const f = form(page);
+  await f.getByLabel("Preferred date", { exact: true }).selectOption(when.slice(0, 10));
+  await f.getByLabel("Preferred time", { exact: true }).selectOption(when.slice(11));
+}
+
+/** "2026-11-26" -> "Thursday, November 26, 2026", independently of the site's own formatter. */
+const usDate = (ymd: string) =>
+  new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(
+    new Date(`${ymd}T12:00:00Z`),
+  );
 
 /** Body for /api/restorative-checkout: Luna Light + boots, $45 + $35 + $8 travel = $88. */
 const validBody = () => ({
@@ -86,7 +105,51 @@ test.describe("restorative booking page", () => {
     );
     await expect(f).toContainText("Total, paid online now");
     await expect(f).not.toContainText(/paid at your visit|Nothing is paid now|First choice|Second choice/);
-    await expect(f.getByLabel("Preferred date and time")).toHaveAttribute("min", /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    await expect(f.getByRole("group", { name: "Preferred date and time" })).toContainText(
+      "Florida time. 10:00 AM to 5:00 PM, at least 24 hours from now and within the next 90 days.",
+    );
+  });
+
+  test("the date and time are dropdowns in US format that only offer bookable times", async ({ page }) => {
+    await page.goto("/book/restorative");
+    const f = form(page);
+    const date = f.getByLabel("Preferred date", { exact: true });
+    const time = f.getByLabel("Preferred time", { exact: true });
+    await expect(date).toHaveJSProperty("tagName", "SELECT");
+    await expect(f.locator('input[type="date"], input[type="datetime-local"]')).toHaveCount(0);
+    await expect(time).toBeDisabled();
+
+    const dates = await date.locator("option:not([value=''])").evaluateAll((o) =>
+      o.map((x) => ({ value: (x as HTMLOptionElement).value, label: x.textContent })),
+    );
+    // Never today (24 hours' notice), never more than 90 days out, always "Weekday, Month D, YYYY".
+    const today = floridaTime(0).slice(0, 10);
+    expect(dates.every((d) => d.value > today)).toBe(true);
+    expect(dates.at(-1)!.value <= floridaTime(90).slice(0, 10)).toBe(true);
+    expect(dates.length).toBeGreaterThanOrEqual(89);
+    for (const d of dates) expect(d.label).toBe(usDate(d.value));
+
+    const fiveDays = floridaTime(5).slice(0, 10);
+    await date.selectOption(fiveDays);
+    await expect(time).toBeEnabled();
+    const times = await time.locator("option:not([value=''])").allTextContents();
+    expect(times).toEqual([
+      "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM",
+      "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM",
+    ]);
+  });
+
+  test("the dropdowns show US format even on a UK-set device in another time zone", async ({ browser }) => {
+    const context = await browser.newContext({ locale: "en-GB", timezoneId: "Europe/London" });
+    const page = await context.newPage();
+    await page.goto("/book/restorative");
+    const date = form(page).getByLabel("Preferred date", { exact: true });
+    const first = await date.locator("option:not([value=''])").first();
+    const value = await first.getAttribute("value");
+    // Built from Florida time, so a London evening doesn't move the first bookable day.
+    expect(value! > floridaTime(0).slice(0, 10)).toBe(true);
+    await expect(first).toHaveText(usDate(value!));
+    await context.close();
   });
 
   test("a Luna package: Netlify form first, then Stripe with the same reference, then the success page", async ({ page, mocks, request }) => {
@@ -108,6 +171,7 @@ test.describe("restorative booking page", () => {
     await expect(paid).toContainText("Payment received. Thank you!");
     await expect(paid).toContainText("Shary will confirm your time by text or email.");
     await expect(paid).toContainText("$88");
+    await expect(paid).toContainText(`You asked for ${usDate(when.slice(0, 10))} at 10:00 AM (Florida time).`);
 
     // Shary got the details, marked as paying online, with the reference.
     expect(mocks.netlify).toHaveLength(1);
@@ -125,7 +189,8 @@ test.describe("restorative booking page", () => {
       enhancements: "Compression Boots: $35",
       travelFee: "$8",
       total: "$88",
-      preferredTime: expect.stringMatching(/ at 10:00 AM \(Florida time\)$/),
+      // Exactly the day and time picked: no time zone shift between the form, Shary and Stripe.
+      preferredTime: `${usDate(when.slice(0, 10))} at 10:00 AM (Florida time)`,
       payment: "Paying online by card (Stripe). Only paid once a Stripe payment with this reference shows.",
       reference,
       optIn: "no",
@@ -146,6 +211,8 @@ test.describe("restorative booking page", () => {
     expect(stripe.get("metadata[selection]")).toBe("package:luna-light");
     expect(stripe.get("metadata[extras]")).toBe("addon-compression-boots");
     expect(stripe.get("metadata[preferredTime]")).toBe(when);
+    expect(stripe.get("metadata[preferredTimeFlorida]")).toBe(`${usDate(when.slice(0, 10))} at 10:00 AM (Florida time)`);
+    expect(stripe.get("payment_intent_data[description]")).toContain(`${usDate(when.slice(0, 10))} at 10:00 AM (Florida time)`);
     expect(stripe.get("client_reference_id")).toBe(reference);
     expect(stripe.get("customer_email")).toBe("ana@example.com");
     expect(stripe.get("success_url")).toMatch(/\/book\/restorative\/success\?session_id=\{CHECKOUT_SESSION_ID\}$/);
@@ -170,21 +237,15 @@ test.describe("restorative booking page", () => {
 
     await f.getByRole("radio", { name: /^Targeted Red Light/ }).check();
     await expect(f.getByTestId("restorative-grand-total")).toHaveText("$37");
-    await fillDetails(page, floridaTime(-2));
+    // A date with no time still isn't enough.
+    await fillDetails(page);
+    await f.getByLabel("Preferred time", { exact: true }).selectOption("");
     await f.getByRole("button", { name: "Continue to payment" }).click();
-    await expect(f.getByText("That time has already passed. Please choose a later one.")).toBeVisible();
-
-    await f.getByLabel("Preferred date and time").fill(floridaInHours(3));
-    await f.getByRole("button", { name: "Continue to payment" }).click();
-    await expect(f.getByText("Please choose a time at least 24 hours from now.")).toBeVisible();
-
-    await f.getByLabel("Preferred date and time").fill(floridaTime(120));
-    await f.getByRole("button", { name: "Continue to payment" }).click();
-    await expect(f.getByText("Please choose a date within the next 90 days.")).toBeVisible();
+    await expect(f.getByText("Please choose a date and time.")).toBeVisible();
     expect(mocks.netlify).toHaveLength(0);
 
     mocks.netlifyFails = true;
-    await f.getByLabel("Preferred date and time").fill(floridaTime(5));
+    await pickTime(page, floridaTime(5));
     await f.getByRole("button", { name: "Continue to payment" }).click();
     await expect(f.getByText("Sorry, that didn't send, and nothing was charged. Please try again, or call or text Shary.")).toBeVisible();
     await expect(page).toHaveURL(/\/book\/restorative$/);
@@ -221,7 +282,8 @@ test.describe("restorative booking page", () => {
     await expect(f.getByRole("checkbox", { name: /Aromatherapy/ })).toBeChecked();
     await expect(f.getByLabel("First name")).toHaveValue("Ana");
     await expect(f.getByLabel("City or ZIP code")).toHaveValue("34202");
-    await expect(f.getByLabel("Preferred date and time")).toHaveValue(when);
+    await expect(f.getByLabel("Preferred date", { exact: true })).toHaveValue(when.slice(0, 10));
+    await expect(f.getByLabel("Preferred time", { exact: true })).toHaveValue("14:30");
     await expect(f.getByRole("checkbox", { name: /email me Avida Luna news/ })).toBeChecked();
     await expect(f.getByTestId("restorative-grand-total")).toHaveText("$88");
     await expect(f.getByRole("button", { name: "Continue to payment" })).toBeVisible();
@@ -234,6 +296,8 @@ test.describe("restorative booking page", () => {
     expect(mocks.netlify[0].get("selection")).toBe("Luna Reset: $65");
     expect(mocks.netlify[0].get("enhancements")).toBe("Aromatherapy: $15");
     expect(mocks.netlify[0].get("total")).toBe("$88");
+    expect(mocks.netlify[0].get("preferredTime")).toBe(`${usDate(when.slice(0, 10))} at 2:30 PM (Florida time)`);
+    await expect(page.getByTestId("restorative-when")).toHaveText(`You asked for ${usDate(when.slice(0, 10))} at 2:30 PM (Florida time).`);
     expect(await page.evaluate(() => sessionStorage.getItem("avidaluna:restorative"))).toBeNull();
   });
 
@@ -308,10 +372,27 @@ test.describe("restorative checkout API", () => {
     }
   });
 
-  test("a past date, a date under 24 hours away and one over 90 days out return 400", async ({ request }) => {
-    for (const preferredTime of [floridaTime(-1), floridaInHours(3), floridaTime(91), "2030-02-30T10:00", "soon"]) {
-      const res = await post(request, { ...validBody(), preferredTime });
+  test("the server enforces the booking hours, so the form can't be bypassed", async ({ request }) => {
+    const cases: [string, string][] = [
+      [floridaTime(-1, "14:00"), "That date has already passed. Please choose a date at least 24 hours from now."],
+      [soonButInHours(), "Please choose a date at least 24 hours from now."],
+      [floridaTime(91, "14:00"), "Please choose a date within the next 90 days."],
+      [floridaTime(5, "09:30"), "Please choose a time between 10:00 AM and 5:00 PM."],
+      [floridaTime(5, "17:30"), "Please choose a time between 10:00 AM and 5:00 PM."],
+      [floridaTime(5, "00:46"), "Please choose a time between 10:00 AM and 5:00 PM."],
+      ["2030-02-30T10:00", "Please choose a date and time."],
+      ["11/12/2026 10:00 AM", "Please choose a date and time."],
+    ];
+    // Its own client IP, so these ten calls don't use up the route's rate limit for the other tests.
+    const headers = { "x-forwarded-for": "10.77.0.1" };
+    for (const [preferredTime, message] of cases) {
+      const res = await request.post("/api/restorative-checkout", { data: { ...validBody(), preferredTime }, headers });
       expect(res.status(), preferredTime).toBe(400);
+      expect((await res.json()).fields?.preferredTime, preferredTime).toBe(message);
+    }
+    for (const preferredTime of [floridaTime(5, "10:00"), floridaTime(5, "17:00")]) {
+      const res = await request.post("/api/restorative-checkout", { data: { ...validBody(), preferredTime }, headers });
+      expect(res.status(), preferredTime).toBe(200);
     }
   });
 

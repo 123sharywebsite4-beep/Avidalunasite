@@ -48,7 +48,8 @@ export const stripeProvider: PaymentProvider = {
             custom_fields: [
               {
                 key: "appointmentdate",
-                label: { type: "custom" as const, custom: "Appointment date" },
+                // Free text on Stripe's page, so the label spells out the US format (no 11/12 ambiguity).
+                label: { type: "custom" as const, custom: "Appointment date (MM/DD/YYYY)" },
                 type: "text" as const,
                 optional: false,
               },

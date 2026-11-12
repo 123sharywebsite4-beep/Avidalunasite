@@ -103,7 +103,9 @@ export async function createRestorativeCheckout(
       reference,
       selection: input.selection,
       extras: quote.extras.map((e) => e.addOn.id).join(",").slice(0, 500),
+      // Machine-readable (Florida wall-clock, never converted) and the same time in words, US style.
       preferredTime: input.preferredTime,
+      preferredTimeFlorida: formatPreferredTime(input.preferredTime),
     },
   });
   return { url: session.url, reference, totalCents: quote.totalCents };
