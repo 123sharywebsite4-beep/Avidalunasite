@@ -64,6 +64,8 @@ export const STORAGE = {
   step: "avidaluna:step",
   /** Set when "Book now" was clicked, so coming back to the tab opens step 3. */
   bookClicked: "avidaluna:bookClicked",
+  /** Restorative booking in progress (sent to Stripe), so the cancel page can restore the form. */
+  restorativeDraft: "avidaluna:restorative",
 } as const;
 
 /** sessionStorage reads and writes that never throw (private mode, blocked storage). */
@@ -73,6 +75,13 @@ export const session = {
       return safeSession()?.getItem(key) ?? null;
     } catch {
       return null;
+    }
+  },
+  remove(key: string) {
+    try {
+      safeSession()?.removeItem(key);
+    } catch {
+      // Blocked storage: nothing was saved.
     }
   },
   set(key: string, value: string) {

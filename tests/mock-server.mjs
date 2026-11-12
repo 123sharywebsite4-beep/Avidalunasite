@@ -45,13 +45,18 @@ createServer(async (req, res) => {
       });
     }
     const id = `cs_test_mock${Date.now()}`;
-    state.lastSession = { id, lines, form };
-    return send(res, 200, {
+    const metadata = Object.fromEntries(
+      Object.entries(form)
+        .filter(([k]) => /^metadata\[[^\]]+\]$/.test(k))
+        .map(([k, v]) => [k.slice(9, -1), v]),
+    );
+    state.lastSession = { id, lines, form, metadata };
+    // Stripe sends the person to success_url after paying; here the "checkout page" is that URL.
+    const success = (form.success_url || `${SITE}/add-ons/success?session_id={CHECKOUT_SESSION_ID}`).replace(
+      "{CHECKOUT_SESSION_ID}",
       id,
-      object: "checkout.session",
-      url: `${SITE}/add-ons/success?session_id=${id}`,
-      livemode: false,
-    });
+    );
+    return send(res, 200, { id, object: "checkout.session", url: success, livemode: false });
   }
   if (url.pathname.startsWith("/v1/checkout/sessions/") && req.method === "GET") {
     const s = state.lastSession;
@@ -62,6 +67,7 @@ createServer(async (req, res) => {
       object: "checkout.session",
       payment_status: "paid",
       amount_total: total,
+      metadata: s.metadata ?? {},
       line_items: {
         object: "list",
         data: s.lines.map((l) => ({ description: l.name, quantity: l.quantity, amount_total: l.unit * l.quantity })),

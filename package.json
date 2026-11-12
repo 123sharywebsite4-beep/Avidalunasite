@@ -12,6 +12,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:unit": "node --test \"tests/unit/*.test.ts\"",
     "qr": "node scripts/make-qr.mjs",
     "seed:build": "node --no-warnings scripts/make-seed.mts"
   },

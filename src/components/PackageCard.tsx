@@ -42,7 +42,7 @@ export function PackageCard({ pkg, travelFee }: { pkg: WellnessPackage; travelFe
       {isMedical(pkg) ? <p className="pkg-card-note">{MEDICAL_CONSULTATION_LINE}</p> : null}
       {canBook(pkg) ? (
         <Link
-          href={`/book?package=${pkg.slug}`}
+          href={pkg.type === "restorative" ? `/book/restorative?package=${pkg.slug}` : `/book?package=${pkg.slug}`}
           className="btn btn-outline"
           aria-label={`Book this package: ${pkg.name}`}
         >

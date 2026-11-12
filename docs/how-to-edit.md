@@ -31,6 +31,11 @@ Packages → click the package → change **Includes** or **Package price** → 
 **Change the travel fee or IV timing**
 Contact info → **Travel fee for restorative-only visits**, **IV travel included (minutes)**, **IV infusion time** or **Total IV appointment time** → **Publish**.
 
+**Refund a restorative visit someone paid for online**
+If you can't make the time they chose and no other time works for them, refund it in full: in the Stripe app or dashboard, open **Payments**, find the payment (search the booking reference from the form email, like `AL-7K3QPX`), then **Refund** → full amount. Stripe emails them. Stripe keeps its processing fee on refunds.
+
+The booking page's headings, buttons and payment wording are part of the website, not the Studio, so they always match how booking works. Ask Abe to change them.
+
 *[Screenshot: an add-on with the Price field]*
 
 **Hide something without deleting it**

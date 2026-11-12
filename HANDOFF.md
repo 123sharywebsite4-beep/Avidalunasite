@@ -8,20 +8,23 @@ The website for **Avida Luna LLC, doing business as Avida Luna Wellness** (avida
 ### Pricing and booking rules (Shary, November 2026)
 - One-time bookings only: no memberships, recurring billing or prepaid multi-visit series.
 - **Medical** (IVs, IM injections, IV nutrient add-ons): booked, screened and paid on Hydreight.
-- **Non-medical** (targeted red light, compression boots, aromatherapy, Vitamin Wellness Spray): reserved on the site and paid at the visit. Each has a standalone price and a lower enhancement price (when added to an appointment or package). "Pay at my visit" is the only payment option for now: Stripe is still wired up but has no keys.
+- **Non-medical** (targeted red light, compression boots, aromatherapy, Vitamin Wellness Spray): a restorative-only visit is booked on `/book/restorative` and, once Stripe has keys, paid online when booked (without keys: paid at the visit). Enhancements added to an IV visit are paid at the visit (or online on `/add-ons`). Each item has a standalone price and a lower enhancement price (when added to an appointment or package).
 - **Packages** (`package` documents): restorative (Luna Light / Reset / Signature Reset), IV wellness, and B12 wellness. For IV and B12 packages the site shows the split: the IV/injection's price is paid on Hydreight, the rest of the package price at the visit. It never asks which IV (Recovery Reset's Energy-or-Athlete choice is made on Hydreight). Every IV/injection package shows the "Required medical consultation included…" line; there's no consultation charge anywhere.
-- **Travel** (Contact info in Sanity): restorative-only visits pay a travel fee ($8) once per appointment, shown with the total before submitting. IV visits have travel included within a 35-minute one-way drive ("Additional travel charges may apply and will be confirmed before booking."). Injection-only travel isn't decided yet, so the B12 packages show "Booking opens soon" (Sanity: **Booking open** off) and IM injections have no booking button.
+- **Travel** (Contact info in Sanity): restorative-only visits pay a travel fee ($8) once per appointment, shown with the total before booking (and its own line item at Stripe checkout). IV visits have travel included within a 35-minute one-way drive ("Additional travel charges may apply and will be confirmed before booking."). Injection-only travel isn't decided yet, so the B12 packages show "Booking opens soon" (Sanity: **Booking open** off) and IM injections have no booking button.
 - **Timing**: IV infusion time and total appointment time are always shown separately. Aromatherapy runs alongside the service and adds no time.
 - **Booking flows** on `/book` (static page; the flow is picked in the browser from the URL):
   - `/book` and `/book?package=<iv package>`: details → Hydreight → enhancements (only ones the package doesn't include) → "Pay at my visit" sends Netlify form `booking-extras`.
-  - `/book?package=<luna package>` and `/book?restorative=1`: the restorative request form (Netlify form `restorative-request`, Mailchimp `SOURCE=restorative`). One main choice at its own price, extras at enhancement prices, plus the travel fee.
+  - `/book?package=<luna package>` and `/book?restorative=1` redirect to **`/book/restorative`** (its own static page: heading "Book a restorative visit"). One main choice at its own price, extras at enhancement prices, plus the travel fee, and **one** preferred date and time (Florida time, 24 hours to 90 days ahead: `BOOKING_DATE_RULES` in `src/lib/restorative.ts`). Netlify form `restorative-request`, Mailchimp `SOURCE=restorative`.
+  - **Stripe on:** "Continue to payment" sends the Netlify form first (with a booking reference like `AL-7K3QPX` and "Paying online"), then opens Stripe Checkout tagged with the same reference. No payment can happen without Shary having the details. If the form fails, nothing is charged. If the person abandons Stripe, Shary has a form email with no matching payment: not booked. `/book/restorative/cancel` restores the form and offers "Send as a request and pay at my visit".
+  - **Stripe off:** "Send my request", pay at the visit (as before), still with a reference.
+  - The date is a request until Shary confirms by text or email. If she can't make it and no other time works, she refunds in full in Stripe (Payments → the payment → Refund). The full cancellation and refund policy is still a TODO from Shary.
 - **Compliance exception**: "Detox/Hangover IV" and "Migraine IV" are Shary's own service names (her responsibility under our agreement). `ALLOWED_SERVICE_NAMES` in `studio/lib/compliance.ts` skips exactly those two names; the words are still flagged everywhere else.
 
 | Part | Tool |
 |---|---|
 | Website | Next.js 16 (App Router, TypeScript) + Tailwind 4, hosted on Netlify |
 | Content Shary edits | Sanity Studio at `avidaluna.sanity.studio` (code in `/studio`) |
-| Add-on payments | Stripe Checkout (hosted page), behind `src/lib/payments` so another processor can replace it |
+| Online payments | Stripe Checkout (hosted page) for add-ons and restorative visits, behind `src/lib/payments` so another processor can replace it |
 | Email list | Mailchimp, through Shary's **public signup form** (no API key), posted in the background from the site's own forms (`src/lib/mailchimp-signup.ts`) |
 | Form emails | Netlify Forms: "contact", "group-request", "add-ons-at-visit", "booking-extras" and "restorative-request" are emailed to Shary (`public/__forms.html`) |
 | Booking-link note | Shary's Mailchimp automation on `SOURCE = booking` (the site sends no email itself) |
@@ -58,10 +61,11 @@ Public pages read from Sanity's CDN (cheap on the free allowance). The only unca
 If Sanity isn't configured, the site renders from `/content/fallback.ts`, so builds never break.
 
 ## Payments: how the price stays honest
-- Online payment is off in production (no Stripe keys), so clients pay add-ons at the visit. The code below stays for later.
+- Online payment is off in production until Stripe keys are added (`paymentsEnabled()` is false): add-ons and restorative visits are then paid at the visit, and every page says so. With keys, the same pages switch to "paid online" on the next deploy.
 - The browser sends only `[{ id, quantity }]` to `/api/checkout`, never a price. Add-ons are charged at their enhancement price (they're for a booked appointment).
 - The server reads those add-ons live from Sanity, rejects hidden or unknown items, caps quantity at 10, and builds Stripe line items from the server-side prices.
-- The webhook `/api/stripe/webhook` verifies Stripe's signature and logs only the session ID, items and amount.
+- Restorative visits: the browser sends only the choice id, enhancement ids, the date, the email for the receipt and the total it showed to `/api/restorative-checkout`. The server re-prices everything live from Sanity (package or standalone price, enhancement prices, travel fee), refuses anything hidden, closed, already included or with an open TODO (409), and returns 409 if the total differs from what the person saw. Stripe gets ids, the date and the reference in metadata, never a name, phone number or address.
+- The webhook `/api/stripe/webhook` verifies Stripe's signature and logs only ids, the amount and, for restorative visits (`metadata.kind = "restorative"`), the booking reference.
 - To switch processors (e.g. Square): implement `AddOnPaymentProvider` in `src/lib/payments/`, and change one line in `src/lib/payments/index.ts`.
 
 ## Forms and the email list
@@ -75,7 +79,7 @@ No email service and no Mailchimp API key: Shary keeps her inbox and her Mailchi
 | Group-event request | Netlify form `group-request` → emailed to Shary | Only if the box is ticked: `group`, `yes` |
 | "Pay at my visit" (/add-ons) | Netlify form `add-ons-at-visit` → emailed to Shary | Never |
 | "Pay at my visit" (/book step 3: package items + enhancements) | Netlify form `booking-extras` (name, email, package, non-medical items, amount due at the visit) → emailed to Shary | Never |
-| Restorative-visit request (/book?restorative=1, Luna packages) | Netlify form `restorative-request` (name, email, phone, city/ZIP, choice, enhancements, travel fee, total, 2–3 preferred times) → emailed to Shary | Always: `restorative`, `yes`/`no` |
+| Restorative visit (/book/restorative, Luna packages) | Netlify form `restorative-request` (name, email, phone, city/ZIP, choice, enhancements, travel fee, total, preferred date and time, payment: online or at visit, booking reference) → emailed to Shary | Always: `restorative`, `yes`/`no` |
 
 - Mailchimp gets only `EMAIL`, `FNAME`, `LNAME`, `SOURCE` and `OPTIN`, from the browser, via her signup form's JSONP endpoint (`subscribe/post-json`), with Mailchimp's honeypot field sent empty. "Already subscribed" counts as success; it gives up after 8 seconds. The form values and the two merge tag names can be overridden with the `NEXT_PUBLIC_MAILCHIMP_*` env vars (see `.env.example`).
 - The CSP allows scripts from `https://avidaluna.us22.list-manage.com` for that JSONP reply. Nothing else was opened.
@@ -127,6 +131,8 @@ It would mark the client as booked in Mailchimp, which triggers the add-on offer
 | `src/lib/content.ts` | All content reads (Sanity with fallback) |
 | `src/lib/packages.ts` | Package split, travel fee, enhancement prices and filtering (shared by pages, forms and llms.txt) |
 | `studio/scripts/update-packages-pricing.ts` | One-off, dry-run-first Sanity update for the November 2026 pricing (see `CHECKLIST.md`) |
+| `studio/scripts/update-restorative-copy.ts` | One-off, dry-run-first Sanity update of six FAQ/page texts for restorative booking (see `CHECKLIST.md`) |
+| `src/lib/restorative.ts` | Restorative choices, pricing (`quoteRestorative`), date rules and booking reference, shared by the form and the checkout API |
 | `src/lib/constants.ts` | `CONTACT_EMAIL`, `HYDREIGHT_BOOKING_URL`, phone, legal name, Mailchimp signup form values |
 | `src/lib/validation.ts` | Form schemas (no health fields) |
 | `src/lib/mailchimp-signup.ts` | Browser helper that adds someone to Shary's list (EMAIL, FNAME, LNAME, SOURCE, OPTIN only) |
@@ -140,7 +146,8 @@ It would mark the client as booked in Mailchimp, which triggers the add-on offer
 ## Running checks
 ```bash
 npm run typecheck && npm run lint && npm run build
-PW_CHROMIUM_PATH=<path to chromium, optional> npm run test:e2e   # builds with mock keys; no real accounts needed
+npm run test:unit                                                # pricing and date rules (Node's test runner)
+PW_CHROMIUM_PATH=<path to chromium, optional> npm run test:e2e   # builds twice (with and without mock Stripe keys); no real accounts needed
 ```
 The tests cover booking (including Mailchimp failing or timing out), what is sent to Mailchimp and Netlify Forms, checkout price integrity, cancel/restore, redirects (301), banned health words on every page, a health-field audit of every form, axe accessibility, and keyboard-only booking.
 
