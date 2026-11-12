@@ -1,6 +1,7 @@
 import { cityAreas, serviceAreas } from "@content/fallback";
 import { BRAND_NAME, LEGAL_LINE, SITE_URL } from "@/lib/constants";
 import { getAddOns, getFaqs, getPackages, getServices, getSiteSettings } from "@/lib/content";
+import { paymentsEnabled } from "@/lib/payments";
 import { formatPrice } from "@/lib/format";
 import { atVisitPart, enhancementPrice, includedLines, isMedical, MEDICAL_CONSULTATION_LINE, medicalPart } from "@/lib/packages";
 import type { Faq, Service } from "@/lib/types";
@@ -17,6 +18,7 @@ const pages = [
   ["FAQ", "/faq", "Cost, booking, screening, safety, payment and service area"],
   ["About Shary Gonzalez, RN, BSN", "/about", "The registered nurse behind Avida Luna Wellness"],
   ["Book an appointment", "/book", "Start a booking; scheduling, screening and payment finish on a secure, HIPAA-compliant booking page"],
+  ["Book a restorative visit", "/book/restorative", "Red light, compression boots and aromatherapy on their own: non-medical, no IV and no health screening"],
   ["Restorative enhancements", "/add-ons", "Red light, compression boots, aromatherapy and a take-home spray for a booked appointment, at enhancement prices"],
   ["Contact", "/contact", "Phone, email and contact form"],
 ];
@@ -78,7 +80,7 @@ export async function GET() {
     "",
     ...priced(of("boost")),
     "",
-    "## Restorative services and products (non-medical, paid at the visit)",
+    `## Restorative services and products (non-medical; ${paymentsEnabled() ? "restorative-only visits are paid online when booked, enhancements to an IV visit at the visit" : "paid at the visit"})`,
     "",
     ...addOns
       .filter((a) => !a.todo)

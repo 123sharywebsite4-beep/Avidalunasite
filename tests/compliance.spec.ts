@@ -35,7 +35,7 @@ test.describe("health wording", () => {
 });
 
 test.describe("forms collect no health information", () => {
-  const formPages = ["/book", "/book?restorative=1", "/join", "/contact", "/events"];
+  const formPages = ["/book", "/book/restorative", "/join", "/contact", "/events"];
   for (const path of formPages) {
     test(`${path}: every text box has the no-medical-info line and no health fields exist`, async ({ page }) => {
       await page.goto(path);
@@ -84,7 +84,7 @@ test.describe("SEO and privacy basics", () => {
 
   test("every page has a unique title and a canonical URL", async ({ page }) => {
     const titles = new Set<string>();
-    for (const path of ["/", "/services", "/packages", "/add-ons", "/events", "/about", "/faq", "/contact", "/book"]) {
+    for (const path of ["/", "/services", "/packages", "/add-ons", "/events", "/about", "/faq", "/contact", "/book", "/book/restorative"]) {
       await page.goto(path);
       const title = await page.title();
       expect(titles.has(title), `duplicate title ${title}`).toBe(false);
@@ -108,7 +108,7 @@ test.describe("SEO and privacy basics", () => {
   });
 
   test("titles fit in 60 characters and descriptions in 160", async ({ page }) => {
-    for (const path of ["/", "/services", "/packages", "/add-ons", "/events", "/wellness-education", "/about", "/faq", "/contact", "/book", "/join"]) {
+    for (const path of ["/", "/services", "/packages", "/add-ons", "/events", "/wellness-education", "/about", "/faq", "/contact", "/book", "/book/restorative", "/join"]) {
       await page.goto(path);
       expect((await page.title()).length, `title on ${path}`).toBeLessThanOrEqual(60);
       const meta = (await page.locator('meta[name="description"]').getAttribute("content")) ?? "";

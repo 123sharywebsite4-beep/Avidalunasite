@@ -2,8 +2,8 @@ import type { Page } from "@playwright/test";
 import { expect, expectMailchimpCall, test } from "./helpers";
 
 // Shary's packages and booking rules: the Hydreight / at-visit split, the $8 travel fee for
-// restorative-only visits, enhancement filtering, the restorative request form, and B12 booking
-// staying closed until travel pricing for injections is decided.
+// restorative-only visits, enhancement filtering and B12 booking staying closed until travel pricing
+// for injections is decided. The restorative booking itself is in restorative.spec.ts.
 
 const MEDICAL_LINE =
   "Required medical consultation included. IVs and injections are subject to medical clearance and provider approval.";
@@ -34,7 +34,16 @@ test.describe("/packages", () => {
     await expect(light).toContainText("$45");
     await expect(light).toContainText("$53 with the $8 travel fee");
     await expect(light).not.toContainText(MEDICAL_LINE);
-    await expect(light.getByRole("link", { name: /Book this package/ })).toHaveAttribute("href", "/book?package=luna-light");
+    await expect(light.getByRole("link", { name: /Book this package/ })).toHaveAttribute(
+      "href",
+      "/book/restorative?package=luna-light",
+    );
+    // Stripe is on in the test build: restorative visits are paid online, not at the visit.
+    const restorativeNote = page.locator("#restorative .iv-note");
+    await expect(restorativeNote).toContainText("pay securely online when you book");
+    await expect(restorativeNote).not.toContainText("pay at your visit");
+    await expect(restorativeNote.getByRole("link", { name: "Book a restorative visit" })).toHaveAttribute("href", "/book/restorative");
+    await expect(page.locator("#restorative")).not.toContainText("book directly with Shary");
     await expect(page.getByTestId("package-luna-reset")).toContainText("$73 with the $8 travel fee");
     await expect(page.getByTestId("package-luna-signature-reset")).toContainText("$87 with the $8 travel fee");
 
@@ -170,7 +179,7 @@ test.describe("IV package booking (/book?package=…)", () => {
 
   test("package pages pass axe (WCAG 2.2 AA)", async ({ page }) => {
     const { default: AxeBuilder } = await import("@axe-core/playwright");
-    for (const url of ["/book?package=hydrate-and-unwind", "/book?package=luna-light", "/book?package=b12-and-light"]) {
+    for (const url of ["/book?package=hydrate-and-unwind", "/book/restorative?package=luna-light", "/book?package=b12-and-light"]) {
       await page.goto(url);
       await expect(page.getByText("Loading your booking options…")).toHaveCount(0);
       const results = await new AxeBuilder({ page })
@@ -178,104 +187,5 @@ test.describe("IV package booking (/book?package=…)", () => {
         .analyze();
       expect(results.violations.map((v) => `${url} ${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
     }
-  });
-});
-
-test.describe("restorative-only request (Netlify form \"restorative-request\")", () => {
-  async function fillContact(page: Page) {
-    const form = page.getByRole("form", { name: "Restorative visit request" });
-    await form.getByLabel("First name").fill("Ana");
-    await form.getByLabel("Last name").fill("Rivera");
-    await form.getByLabel("Email", { exact: true }).fill("ana@example.com");
-    await form.getByLabel("Phone").fill("941 555 0100");
-    await form.getByLabel("City or ZIP code").fill("34202");
-    await form.getByLabel("First choice").fill("2030-05-04T10:00");
-    await form.getByLabel("Second choice").fill("2030-05-05T14:30");
-    return form;
-  }
-
-  test("a Luna package: $8 travel fee and total before submitting, enhancements filtered, sent to Shary", async ({ page, mocks }) => {
-    await page.goto("/book?package=luna-light");
-    const form = page.getByRole("form", { name: "Restorative visit request" });
-    await expect(form.getByRole("radio", { name: /Luna Light/ })).toBeChecked();
-    await expect(form.getByTestId("travel-fee")).toHaveText("$8");
-    await expect(form.getByTestId("restorative-grand-total")).toHaveText("$53");
-
-    // Luna Light already includes red light and aromatherapy, so only boots and the spray are offered.
-    const extras = form.getByTestId("restorative-enhancements");
-    await expect(extras.getByRole("checkbox", { name: /Targeted Red Light/ })).toHaveCount(0);
-    await expect(extras.getByRole("checkbox", { name: /Aromatherapy/ })).toHaveCount(0);
-    await extras.getByRole("checkbox", { name: /Compression Boots/ }).check();
-    await expect(form.getByTestId("restorative-grand-total")).toHaveText("$88");
-
-    await fillContact(page);
-    await form.getByRole("button", { name: "Send my request" }).click();
-    await expect(page.getByTestId("restorative-success")).toContainText("Thanks! Shary will confirm your time by text or email.");
-
-    expect(mocks.netlify).toHaveLength(1);
-    expect(Object.fromEntries(mocks.netlify[0])).toEqual({
-      "form-name": "restorative-request",
-      firstName: "Ana",
-      lastName: "Rivera",
-      email: "ana@example.com",
-      phone: "941 555 0100",
-      cityZip: "34202",
-      selection: "Luna Light: $45",
-      enhancements: "Compression Boots: $35",
-      travelFee: "$8",
-      total: "$88",
-      preferred1: "2030-05-04T10:00",
-      preferred2: "2030-05-05T14:30",
-      preferred3: "",
-      optIn: "no",
-      "bot-field": "",
-    });
-    await expect.poll(() => mocks.mailchimp.length).toBe(1);
-    expectMailchimpCall(mocks.mailchimp[0], {
-      EMAIL: "ana@example.com",
-      FNAME: "Ana",
-      LNAME: "Rivera",
-      SOURCE: "restorative",
-      OPTIN: "no",
-    });
-  });
-
-  test("a single service: standalone price, then enhancement prices, plus $8 once", async ({ page, mocks }) => {
-    await page.goto("/book?restorative=1");
-    const form = page.getByRole("form", { name: "Restorative visit request" });
-    await expect(form.getByTestId("restorative-grand-total")).toHaveText("—");
-    await form.getByRole("radio", { name: /^Targeted Red Light/ }).check();
-    await expect(form.getByTestId("restorative-grand-total")).toHaveText("$37");
-    const extras = form.getByTestId("restorative-enhancements");
-    await expect(extras.getByRole("checkbox", { name: /Targeted Red Light/ })).toHaveCount(0);
-    await extras.getByRole("checkbox", { name: /Aromatherapy/ }).check();
-    await expect(form.getByTestId("restorative-grand-total")).toHaveText("$52");
-    await fillContact(page);
-    await form.getByRole("checkbox", { name: /email me Avida Luna news/ }).check();
-    await form.getByRole("button", { name: "Send my request" }).click();
-    await expect(page.getByTestId("restorative-success")).toBeVisible();
-    expect(mocks.netlify[0].get("selection")).toBe("Targeted Red Light: $29");
-    expect(mocks.netlify[0].get("enhancements")).toBe("Aromatherapy: $15");
-    expect(mocks.netlify[0].get("total")).toBe("$52");
-    await expect.poll(() => mocks.mailchimp.length).toBe(1);
-    expectMailchimpCall(mocks.mailchimp[0], { SOURCE: "restorative", OPTIN: "yes" });
-  });
-
-  test("needs a choice, contact details and two times; says so if Netlify fails", async ({ page, mocks }) => {
-    await page.goto("/book?restorative=1");
-    const form = page.getByRole("form", { name: "Restorative visit request" });
-    await form.getByRole("button", { name: "Send my request" }).click();
-    await expect(form.getByText("Please choose a package or service.")).toBeVisible();
-    await expect(form.getByText("Please enter your name.").first()).toBeVisible();
-    await expect(form.getByText("Please choose a date and time.").first()).toBeVisible();
-    expect(mocks.netlify).toHaveLength(0);
-
-    mocks.netlifyFails = true;
-    await form.getByRole("radio", { name: /Luna Reset/ }).check();
-    await fillContact(page);
-    await form.getByRole("button", { name: "Send my request" }).click();
-    await expect(form.getByText("Sorry, that didn't send. Please try again, or call or text Shary.")).toBeVisible();
-    await page.waitForTimeout(300);
-    expect(mocks.mailchimp).toHaveLength(0);
   });
 });

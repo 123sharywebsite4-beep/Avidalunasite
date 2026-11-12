@@ -563,19 +563,19 @@ export const faqs: Faq[] = [
     id: "faq-book",
     question: "How do I book?",
     answer:
-      "For an IV, tap Book and share your name and email. You'll get your booking link right away, then pick your services, a time, and complete your screening and payment on our secure, HIPAA-compliant booking page. Once Shary reviews your screening, you'll be asked to get cleared by our medical provider before your visit. Optional enhancements come after. For red light, compression boots or aromatherapy on their own, send a restorative visit request with a few preferred times and Shary will confirm by text or email.",
+      "For an IV, tap Book and share your name and email. You'll get your booking link right away, then pick your services, a time, and complete your screening and payment on our secure, HIPAA-compliant booking page. Once Shary reviews your screening, you'll be asked to get cleared by our medical provider before your visit. Optional enhancements come after. For red light, compression boots or aromatherapy on their own, book a restorative visit on this website: choose your package or service and a date and time, and Shary confirms your time by text or email.",
   },
   {
     id: "faq-pay",
     question: "How do I pay?",
     answer:
-      "IVs and IM injections are booked and paid on our secure, HIPAA-compliant booking page. Restorative services, enhancements and the Vitamin Wellness Spray are paid at your visit, by tap to pay or card. For a package that includes an IV, you pay the IV's price on the booking page and the rest of the package price at your visit.",
+      "IVs and IM injections are booked and paid on our secure, HIPAA-compliant booking page. For a restorative-only visit, our booking page shows your total, including the travel fee, and how you pay before you book. Enhancements and the Vitamin Wellness Spray added to an IV visit are paid at your visit, by tap to pay or card, or online on our Add-ons page. For a package that includes an IV, you pay the IV's price on the booking page and the rest of the package price at your visit.",
   },
   {
     id: "faq-addons",
     question: "Can I add red light, compression boots or aromatherapy?",
     answer:
-      "Yes. Added to an appointment you've already booked, they're enhancement prices: targeted red light (15 minutes) $25, compression boots (30 minutes) $35, aromatherapy $15, and the take-home Vitamin Wellness Spray $35. Booked on their own they're $29, $39 and $20, and the spray is $37. Aromatherapy \u2014 duration is based on your selected service and continues throughout that service. Pay at your visit.",
+      "Yes. Added to an appointment you've already booked, they're enhancement prices: targeted red light (15 minutes) $25, compression boots (30 minutes) $35, aromatherapy $15, and the take-home Vitamin Wellness Spray $35. Booked on their own they're $29, $39 and $20, and the spray is $37. Aromatherapy \u2014 duration is based on your selected service and continues throughout that service. Enhancements are paid at your visit or online on our Add-ons page.",
   },
   {
     id: "faq-packages",
@@ -586,7 +586,8 @@ export const faqs: Faq[] = [
   {
     id: "faq-cancel",
     question: "What's your cancellation and refund policy?",
-    answer: "Our cancellation and refund policy will be posted here.",
+    answer:
+      "Our full cancellation and refund policy will be posted here. Your date and time for a restorative visit are a request until Shary confirms them by text or email. If you paid online and she can't make that time, and no other time works for you, you'll get a full refund.",
     todo: "Cancellation and refund policy from Shary.",
   },
   // Your visit
@@ -750,7 +751,7 @@ export const pageText: Record<PageKey, PageText> = {
       },
       addons: {
         heading: "Restorative services and enhancements",
-        text: "Book them on their own, or add them to an appointment at the lower enhancement price. Paid at your visit.",
+        text: "Book them on their own, or add them to an appointment at the lower enhancement price.",
       },
       groups: {
         heading: "Group IV therapy for events and workplaces",
@@ -771,7 +772,7 @@ export const pageText: Record<PageKey, PageText> = {
     sections: {
       restorative: {
         heading: "Restorative packages",
-        text: "Red light, compression boots and aromatherapy. No IVs or injections, so you book directly with Shary.",
+        text: "Red light, compression boots and aromatherapy. No IVs or injections, so no health screening: book on this website and Shary confirms your time.",
       },
       iv: {
         heading: "IV wellness packages",

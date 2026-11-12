@@ -11,6 +11,7 @@ import { PageHero } from "@/components/PageHero";
 import { getAddOns, getFaqs, getPackages, getPageText, getServices, getSiteSettings } from "@/lib/content";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { enhancementPrice, includedLines } from "@/lib/packages";
+import { paymentsEnabled } from "@/lib/payments";
 import { faqSchema, servicesSchema } from "@/lib/schema";
 import { pageMetadata } from "@/lib/seo";
 import type { Service } from "@/lib/types";
@@ -216,11 +217,13 @@ export default async function ServicesPage() {
             </h2>
             <p className="mt-3 text-muted">{s.addons?.text}</p>
             <p className="mt-3 text-[0.9375rem] text-muted">
-              Restorative-only visits have a {formatPrice(settings.travelFee)} travel fee, once per appointment.
+              Restorative-only visits have a {formatPrice(settings.travelFee)} travel fee, once per appointment, and
+              are {paymentsEnabled() ? "paid securely online when you book" : "paid at your visit"}. Enhancements added
+              to an IV visit are paid at your visit.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/book?restorative=1" className="btn btn-outline">
-                Request a restorative visit <ArrowRightIcon />
+              <Link href="/book/restorative" className="btn btn-outline">
+                Book a restorative visit <ArrowRightIcon />
               </Link>
               <Link href="/add-ons" className="btn btn-outline">
                 Add to a booked visit

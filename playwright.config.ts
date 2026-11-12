@@ -3,6 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 // The tests build and start the site against a local mock of Stripe. Mailchimp and Netlify
 // Forms are mocked in the browser (tests/helpers.ts). No real accounts or keys are needed. Set PW_CHROMIUM_PATH to use a pre-installed Chromium.
 const PORT = 3200;
+/** A second copy of the site built without Stripe keys: online payment off. */
+const NO_PAYMENTS_PORT = 3201;
 const MOCK = "http://localhost:3299";
 
 export const testEnv = {
@@ -17,6 +19,8 @@ export const testEnv = {
 
 export default defineConfig({
   testDir: "./tests",
+  // tests/unit runs with Node's own test runner (npm run test:unit), not Playwright.
+  testIgnore: "unit/**",
   timeout: 45_000,
   fullyParallel: false,
   workers: 1,
@@ -40,6 +44,18 @@ export default defineConfig({
       command: `npm run build && npx next start -p ${PORT}`,
       url: `http://localhost:${PORT}`,
       env: testEnv,
+      timeout: 300_000,
+      reuseExistingServer: false,
+    },
+    {
+      // Same site, no Stripe keys, built into its own folder so its static pages say "pay at your visit".
+      command: `npm run build && npx next start -p ${NO_PAYMENTS_PORT}`,
+      url: `http://localhost:${NO_PAYMENTS_PORT}`,
+      env: {
+        NEXT_PUBLIC_SITE_URL: `http://localhost:${NO_PAYMENTS_PORT}`,
+        HYDREIGHT_HOOK_SECRET: testEnv.HYDREIGHT_HOOK_SECRET,
+        NEXT_DIST_DIR: ".next-no-payments",
+      },
       timeout: 300_000,
       reuseExistingServer: false,
     },

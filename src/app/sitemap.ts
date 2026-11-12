@@ -15,6 +15,7 @@ const staticPaths = [
   "/faq",
   "/contact",
   "/book",
+  "/book/restorative",
   "/join",
   "/privacy",
   "/terms",

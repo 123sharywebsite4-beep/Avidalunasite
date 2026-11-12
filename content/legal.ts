@@ -61,7 +61,12 @@ function builder(prefix: string) {
 
 const LEGAL_LINE = "Avida Luna LLC, doing business as Avida Luna Wellness";
 
-export function legalDefaults(email: string): Record<LegalPageKey, LegalPageContent> {
+export type LegalOptions = {
+  /** Online payment (Stripe) is on, so restorative-only visits are paid when booked. */
+  onlinePayment?: boolean;
+};
+
+export function legalDefaults(email: string, { onlinePayment = false }: LegalOptions = {}): Record<LegalPageKey, LegalPageContent> {
   const mail = { text: email, href: `mailto:${email}` };
 
   const t = builder("t");
@@ -79,8 +84,15 @@ export function legalDefaults(email: string): Record<LegalPageKey, LegalPageCont
       ),
       t.h2("Restorative services, enhancements and packages"),
       t.p(
-        "Restorative services, enhancements and the Vitamin Wellness Spray are non-medical and are paid at your visit. Prices are in US dollars. Every booking, including a package, is a one-time visit: there are no memberships, recurring charges or prepaid series. For a package with an IV or IM injection, the IV or injection is paid on our booking partner’s page and the rest at your visit. Cancellation and refund terms: TODO from Shary.",
+        onlinePayment
+          ? "Restorative services, enhancements and the Vitamin Wellness Spray are non-medical. A restorative-only visit booked on this website is paid online by card when you book, through Stripe. Enhancements and the spray added to an IV visit are paid at your visit, or online on our Add-ons page. Prices are in US dollars. Every booking, including a package, is a one-time visit: there are no memberships, recurring charges or prepaid series. For a package with an IV or IM injection, the IV or injection is paid on our booking partner’s page and the rest at your visit."
+          : "Restorative services, enhancements and the Vitamin Wellness Spray are non-medical and are paid at your visit. Prices are in US dollars. Every booking, including a package, is a one-time visit: there are no memberships, recurring charges or prepaid series. For a package with an IV or IM injection, the IV or injection is paid on our booking partner’s page and the rest at your visit.",
       ),
+      t.p(
+        "The date and time you choose for a restorative visit are a request until Shary confirms them by text or email. If you paid online and she can’t make that time, and no other time works for you, you get a full refund.",
+      ),
+      // TODO (Shary): the full cancellation and refund policy (late cancellations, no-shows, rescheduling).
+      t.p("Cancellation and refund terms: TODO from Shary."),
       t.h2("Contact"),
       t.p("Questions: ", mail, ". See also our ", { text: "privacy notice", href: "/privacy" }, "."),
     ],
@@ -102,19 +114,22 @@ export function legalDefaults(email: string): Record<LegalPageKey, LegalPageCont
         "If you choose to pay for add-ons or a package at your visit: your name, email, the package name, the non-medical items to bring and the amount due at your visit. Never which IV you chose.",
       ),
       p.li(
-        "On the restorative visit request: your phone number, city or ZIP code, the package or services you chose, and two or three preferred dates and times.",
+        "On the restorative visit booking: your phone number, city or ZIP code, the package or services you chose, your preferred date and time, and a booking reference.",
       ),
       p.li("For add-on payments: the appointment date you enter at checkout, and your payment, handled by Stripe."),
+      p.li(
+        "For restorative visits paid online: your payment, handled by Stripe. We send Stripe your email, what you chose, your preferred date and time and the booking reference. Never your phone number or address.",
+      ),
       p.h2("No health information"),
       p.p(
         "This website does not ask for or store health information: no symptoms, conditions, medications or health history. Please don’t include medical information in any message. Medical booking and screening happen with our secure, HIPAA-compliant booking partner, which has its own privacy policy.",
       ),
       p.h2("Who processes it"),
       p.li(
-        "Netlify hosts this website. It also receives and stores the messages you send through our contact, group event, restorative visit request and “pay at my visit” forms, and emails them to us.",
+        "Netlify hosts this website. It also receives and stores the messages you send through our contact, group event, restorative visit booking and “pay at my visit” forms, and emails them to us.",
       ),
       p.li(
-        "Mailchimp runs our email list. When you ask for a booking link, it gets your first name, last name and email, plus where you signed up and whether you ticked the box, so it can send you one note with your booking link. We only send you other emails if you ticked the box. On /join and the restorative visit request, and on the contact and group event forms when you tick the box, it gets the same details.",
+        "Mailchimp runs our email list. When you ask for a booking link, it gets your first name, last name and email, plus where you signed up and whether you ticked the box, so it can send you one note with your booking link. We only send you other emails if you ticked the box. On /join and the restorative visit booking, and on the contact and group event forms when you tick the box, it gets the same details.",
       ),
       p.li("Stripe processes add-on payments."),
       p.li("Sanity stores the website’s text and photos (not your form details)."),

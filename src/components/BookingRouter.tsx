@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { IntakeForm } from "@/components/forms/IntakeForm";
-import { RestorativeRequestForm } from "@/components/forms/RestorativeRequestForm";
 import { type BookingSettings, PackageSummary } from "@/components/PackageSummary";
 import { canBook } from "@/lib/packages";
 import type { AddOn, WellnessPackage } from "@/lib/types";
@@ -12,8 +12,10 @@ import type { AddOn, WellnessPackage } from "@/lib/types";
  * Picks the /book flow from the URL (read in the browser, so /book stays a static page):
  *   /book                    IV booking: details, then Hydreight, then enhancements
  *   /book?package=<iv slug>  the same, with the package's price split first
- *   /book?package=<luna>     restorative request form, with that package chosen
- *   /book?restorative=1      restorative request form
+ *   /book?package=<luna>     moves to /book/restorative?package=<luna> (restorative visits have their own page)
+ *   /book?restorative=1      moves to /book/restorative
+ * next.config.ts redirects both on the server; the move here covers restorative packages whose
+ * slug doesn't start with "luna-".
  * Packages whose booking isn't open yet (the B12 packages) show "Booking opens soon".
  */
 export function BookingRouter({
@@ -30,9 +32,15 @@ export function BookingRouter({
   paymentsEnabled: boolean;
 }) {
   const params = useSearchParams();
+  const router = useRouter();
   const slug = params.get("package") ?? "";
   const pkg = packages.find((p) => p.slug === slug) ?? null;
-  const restorative = packages.filter((p) => p.type === "restorative" && canBook(p));
+  const restorativeUrl =
+    pkg?.type === "restorative" ? `/book/restorative?package=${encodeURIComponent(pkg.slug)}` : !pkg && params.has("restorative") ? "/book/restorative" : null;
+
+  useEffect(() => {
+    if (restorativeUrl) router.replace(restorativeUrl);
+  }, [restorativeUrl, router]);
 
   if (pkg && !canBook(pkg)) {
     return (
@@ -47,15 +55,11 @@ export function BookingRouter({
     );
   }
 
-  if (pkg?.type === "restorative" || (!pkg && params.has("restorative"))) {
+  if (restorativeUrl) {
     return (
-      <RestorativeRequestForm
-        key={pkg?.slug ?? "restorative"}
-        addOns={addOns}
-        packages={restorative}
-        travelFee={settings.travelFee}
-        initial={pkg ? `package:${pkg.slug}` : undefined}
-      />
+      <p className="card mx-auto max-w-2xl p-6 md:p-8">
+        Opening restorative booking… <Link href={restorativeUrl}>Continue</Link>
+      </p>
     );
   }
 
@@ -73,7 +77,7 @@ export function BookingRouter({
       {pkg ? null : (
         <p className="mx-auto mt-6 max-w-2xl text-[0.9375rem] text-muted">
           Red light, compression boots or aromatherapy only, with no IV?{" "}
-          <Link href="/book?restorative=1">Request a restorative visit</Link>. Booking a package?{" "}
+          <Link href="/book/restorative">Book a restorative visit</Link>. Booking a package?{" "}
           <Link href="/packages">See packages</Link>.
         </p>
       )}

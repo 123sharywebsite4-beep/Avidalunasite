@@ -1,6 +1,6 @@
 import "server-only";
 import * as fallback from "@content/fallback";
-import { type LegalBlock, type LegalPageKey, legalDefaults } from "@content/legal";
+import { type LegalBlock, type LegalOptions, type LegalPageKey, legalDefaults } from "@content/legal";
 import { CONTACT_EMAIL } from "./constants";
 import { type PackageSource, resolvePackages } from "./packages";
 import { cdnClient, liveClient } from "./sanity";
@@ -151,6 +151,52 @@ export async function getAddOnsForCheckout(ids: string[]): Promise<AddOn[]> {
   return data.map(normalizeAddOn);
 }
 
+/**
+ * Restorative checkout only. Restorative packages, add-ons and the travel fee, read live from
+ * Sanity (no CDN, no Next cache) in one query, so the amount charged always equals what Shary
+ * last published. Without Sanity configured, uses the local fallback content (still server-side).
+ */
+export async function getRestorativeCatalogLive(): Promise<{
+  packages: WellnessPackage[];
+  addOns: AddOn[];
+  travelFee: number;
+}> {
+  if (!liveClient) {
+    return {
+      packages: resolvePackages(
+        fallback.packages.filter((p) => p.type === "restorative"),
+        [],
+        fallback.addOns,
+      ),
+      addOns: fallback.addOns,
+      travelFee: fallback.siteSettings.travelFee,
+    };
+  }
+  const data = await liveClient.fetch<{
+    packages: PackageSource[];
+    addOns: AddOn[];
+    travelFee: number | null;
+  }>(
+    `{
+      "packages": *[_type == "package" && type == "restorative" && visible != false && defined(slug.current)]{
+        "id": _id, "slug": slug.current, name, type, price,
+        "includes": includes[]._ref, "ivChoices": [],
+        "bookingOpen": coalesce(bookingOpen, true)
+      },
+      "addOns": *[_type == "addon" && visible != false]${addOnProjection},
+      "travelFee": *[_id == "siteSettings"][0].travelFee
+    }`,
+    {},
+    { cache: "no-store" },
+  );
+  const addOns = data.addOns.map(normalizeAddOn);
+  return {
+    packages: resolvePackages(data.packages, [], addOns),
+    addOns,
+    travelFee: typeof data.travelFee === "number" ? data.travelFee : fallback.siteSettings.travelFee,
+  };
+}
+
 /** Packages, with their items resolved against the current services and add-ons. */
 export async function getPackages(): Promise<WellnessPackage[]> {
   const [data, services, addOns] = await Promise.all([
@@ -288,7 +334,7 @@ export type LegalPage = {
 };
 
 /** Terms of use or Privacy notice. Until Shary publishes the page in Sanity, the default text shows. */
-export async function getLegalPage(page: LegalPageKey): Promise<LegalPage> {
+export async function getLegalPage(page: LegalPageKey, options: LegalOptions = {}): Promise<LegalPage> {
   const data = await fetchTagged<{
     title?: string;
     lastUpdated?: string;
@@ -296,7 +342,7 @@ export async function getLegalPage(page: LegalPageKey): Promise<LegalPage> {
     body?: LegalBlock[];
   } | null>(`*[_id == $id][0]{ title, lastUpdated, showDraftNote, body }`, { id: `legalPage-${page}` }, ["legalPage"]);
   const { email } = await getSiteSettings();
-  const base = legalDefaults(email)[page];
+  const base = legalDefaults(email, options)[page];
   return {
     title: data?.title || base.title,
     lastUpdated: data?.lastUpdated || null,

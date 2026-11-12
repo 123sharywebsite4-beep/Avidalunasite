@@ -3,6 +3,7 @@ import { FinalCta } from "@/components/FinalCta";
 import { PackageGroups } from "@/components/PackageGroups";
 import { PageHero } from "@/components/PageHero";
 import { getPackages, getPageText, getSiteSettings } from "@/lib/content";
+import { paymentsEnabled } from "@/lib/payments";
 import { pageMetadata } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -19,7 +20,7 @@ export default async function PackagesPage() {
   return (
     <>
       <PageHero eyebrow="Packages" heading={text.heading} intro={text.intro} />
-      <PackageGroups packages={packages} settings={settings} sections={text.sections} />
+      <PackageGroups packages={packages} settings={settings} sections={text.sections} paymentsOn={paymentsEnabled()} />
       <FinalCta />
     </>
   );

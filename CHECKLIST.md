@@ -34,6 +34,13 @@ Updates only the documents and fields in Shary's pricing spec (service names and
 - [ ] Run the dry run again: it should say every document is already up to date.
 - [ ] If it lists documents under "Check by hand" (aromatherapy with "45 minutes"), fix them in the Studio.
 - [ ] Add `"package"` to the webhook filter (below) so package edits go live without a deploy.
+
+### Restorative booking copy update (one-off)
+Changes six texts that still say restorative visits are paid at the visit, need "a few preferred times", or are booked "directly with Shary": FAQ answers `faq-book`, `faq-pay`, `faq-addons`, `faq-cancel`, and the page sections `pageText-packages` → restorative and `pageText-services` → addons. A field is only changed if it still holds the old default text; anything Shary rewrote is listed under "Check by hand" with the suggested text.
+- [ ] Dry run: `cd studio && npx sanity exec scripts/update-restorative-copy.ts --with-user-token`
+- [ ] Apply: `cd studio && npx sanity exec scripts/update-restorative-copy.ts --with-user-token -- --apply`
+- [ ] Run the dry run again: every field should say "already up to date".
+- [ ] If Terms or Privacy were published in Sanity, the dry run says so: update them in the Studio to match `content/legal.ts` (one preferred date, online payment, the full-refund sentence).
 - [ ] CORS origins (sanity.io/manage → API → CORS): `http://localhost:3000`, the Netlify preview URL, `https://www.avidaluna.com`. No credentials needed for the site; the Studio host is added automatically.
 - [ ] Webhook (sanity.io/manage → API → Webhooks):
   - URL `https://www.avidaluna.com/api/revalidate` (add a second one for the preview URL while testing)
@@ -61,10 +68,13 @@ The contact form, the group-event request, "Pay at my visit", the package/enhanc
 - [ ] Shary creates her own Stripe account. Abe adds the **test** keys (`STRIPE_SECRET_KEY`).
 - [ ] Webhook endpoint: `https://www.avidaluna.com/api/stripe/webhook`, event `checkout.session.completed` → `STRIPE_WEBHOOK_SECRET`.
 - [ ] Test with card `4242 4242 4242 4242` and the Stripe CLI:
-      `stripe listen --forward-to localhost:3000/api/stripe/webhook` then `stripe trigger checkout.session.completed`.
+      `stripe listen --forward-to localhost:3000/api/stripe/webhook` (put the `whsec_...` it prints in `.env.local` as `STRIPE_WEBHOOK_SECRET`; the Dashboard secret won't work locally) then `stripe trigger checkout.session.completed`.
+- [ ] Restorative visit, end to end (test mode): book Luna Light on `/book/restorative`, pay with `4242 4242 4242 4242`. Check: the Netlify "restorative-request" email has the reference and "Paying online"; the Stripe payment shows the same reference; the success page shows it; the function log shows `[stripe] restorative visit paid`. Then refund it in Stripe (Payments → the payment → Refund).
+- [ ] Cancel at Stripe once: `/book/restorative/cancel` restores the form; "Send as a request and pay at my visit" sends a second email with the same reference.
+- [ ] **Before live:** Shary's cancellation and refund policy goes in the FAQ (`faq-cancel`) and Terms. The booking page already promises a full refund if she can't make the time.
 - [ ] Turn on Stripe payment email notifications for Shary (Settings → Notifications).
 - [ ] After approval, swap in the live keys and the live webhook secret, then redeploy once.
-- [ ] **If Stripe doesn't approve her account, we switch to another processor (for example Square), whose fees may differ.** The code is ready for that: implement `AddOnPaymentProvider` in `src/lib/payments/`.
+- [ ] **If Stripe doesn't approve her account, we switch to another processor (for example Square), whose fees may differ.** The code is ready for that: implement `PaymentProvider` in `src/lib/payments/` (add-ons and restorative visits both use it).
 - [ ] Help her set up in-person card payments (in our agreement).
 
 ## 4. Mailchimp (Shary does this in her own account)
