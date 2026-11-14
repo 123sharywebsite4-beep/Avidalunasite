@@ -87,6 +87,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             <p className="flex gap-4">
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
+              <Link href="/cancellation-policy">Cancellation policy</Link>
             </p>
           </div>
         </div>

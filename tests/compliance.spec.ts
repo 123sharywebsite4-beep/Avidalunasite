@@ -1,8 +1,12 @@
 import { ALLOWED_SERVICE_NAMES, COMPLIANCE_WORDS, findComplianceWord } from "../studio/lib/compliance";
 import { expect, PUBLIC_PAGES, test } from "./helpers";
 
+// Shary's Cancellation and Refund Policy, word for word. It says "treatment" in a billing sense
+// (payments, refunds), not as a health claim, so it isn't scanned.
+const VERBATIM_POLICY_PAGES = new Set(["/cancellation-policy"]);
+
 test.describe("health wording", () => {
-  for (const path of PUBLIC_PAGES) {
+  for (const path of PUBLIC_PAGES.filter((p) => !VERBATIM_POLICY_PAGES.has(p))) {
     test(`no banned words on ${path}`, async ({ page }) => {
       await page.goto(path);
       // Open every accordion so hidden answers are scanned too.

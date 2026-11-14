@@ -46,7 +46,8 @@ export default async function FaqPage() {
         ))}
         <p>
           Questions about a specific drip or injection? See{" "}
-          <Link href="/services#questions">IV drip and injection questions</Link>. Didn&apos;t find your answer?{" "}
+          <Link href="/services#questions">IV drip and injection questions</Link>. Cancellations and refunds? See our{" "}
+          <Link href="/cancellation-policy">Cancellation and Refund Policy</Link>. Didn&apos;t find your answer?{" "}
           <Link href="/contact">Get in touch</Link>.
         </p>
       </section>

@@ -23,6 +23,8 @@ test.describe("accessibility (axe, WCAG 2.2 AA)", () => {
     await page.keyboard.type("ana@example.com");
     await page.keyboard.press("Tab"); // opt-in
     await page.keyboard.press("Space");
+    await page.keyboard.press("Tab"); // Cancellation and Refund Policy link
+    await page.keyboard.press("Tab"); // Terms of use link
     await page.keyboard.press("Tab"); // submit
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("hydreight-button")).toBeVisible();
