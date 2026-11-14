@@ -26,6 +26,7 @@ export const PUBLIC_PAGES = [
   "/join",
   "/privacy",
   "/terms",
+  "/cancellation-policy",
   "/add-ons/cancel",
   "/this-page-does-not-exist",
 ];

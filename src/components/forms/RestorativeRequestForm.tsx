@@ -19,7 +19,7 @@ import {
 } from "@/lib/restorative";
 import type { AddOn, WellnessPackage } from "@/lib/types";
 import { fieldErrors, restorativeRequestSchema } from "@/lib/validation";
-import { CheckboxField, FormError, Honeypot, TextField } from "./fields";
+import { CheckboxField, FormError, Honeypot, PolicyNote, TextField } from "./fields";
 import { PreferredTimeField } from "./PreferredTimeField";
 import { HONEYPOT, readForm, session, STORAGE, submitNetlifyForm } from "./submit";
 
@@ -440,12 +440,12 @@ export function RestorativeRequestForm({
       ) : null}
       <FormError message={formError} />
       {online ? (
-        // TODO (Shary): the full cancellation and refund policy, for the Terms and the FAQ ("faq-cancel").
         <p className="text-[0.9375rem]" data-testid="refund-note">
           Your date and time are a request until Shary confirms by text or email. If she can&apos;t make it and no other
           time works for you, you&apos;ll get a full refund.
         </p>
       ) : null}
+      <PolicyNote />
       <button type="submit" className="btn btn-primary w-full text-lg" disabled={pending}>
         {online ? (pending ? "Opening secure checkout…" : "Continue to payment") : pending ? "Sending…" : "Send my request"}
       </button>

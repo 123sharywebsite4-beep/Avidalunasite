@@ -587,8 +587,7 @@ export const faqs: Faq[] = [
     id: "faq-cancel",
     question: "What's your cancellation and refund policy?",
     answer:
-      "Our full cancellation and refund policy will be posted here. Your date and time for a restorative visit are a request until Shary confirms them by text or email. If you paid online and she can't make that time, and no other time works for you, you'll get a full refund.",
-    todo: "Cancellation and refund policy from Shary.",
+      "For restorative visits booked on our website, please give at least 24 hours' notice when you can. Cancelling less than 4 hours before your appointment has a $25 fee. For IV appointments, cancelling less than 24 hours before has a fee of 50% of the booked IV service price. A completed telehealth consultation is nonrefundable. Your date and time for a restorative visit are a request until Shary confirms them by text or email. If you paid online and she can't make that time, and no other time works for you, you'll get a full refund. The full Cancellation and Refund Policy is linked at the bottom of every page.",
   },
   // Your visit
   {

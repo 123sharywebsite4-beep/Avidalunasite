@@ -15,6 +15,7 @@ import {
   CheckboxField,
   FormError,
   Honeypot,
+  PolicyNote,
   SelectField,
   TextField,
 } from "./fields";
@@ -281,6 +282,7 @@ export function IntakeForm({
           Your booking link is ready. It opens our secure, HIPAA-compliant
           booking page in a new tab.
         </p>
+        <PolicyNote className="mt-4" />
         <a
           href={hydreightUrl}
           target="_blank"
@@ -424,6 +426,7 @@ export function IntakeForm({
         error={errors.optIn}
       />
       <FormError message={formError} />
+      {mode === "book" ? <PolicyNote /> : null}
       <button
         type="submit"
         className="btn btn-primary w-full text-lg"

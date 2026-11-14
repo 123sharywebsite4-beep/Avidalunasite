@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 import { NO_MEDICAL_INFO_NOTE } from "@/lib/constants";
+import { CANCELLATION_POLICY_PATH } from "@content/legal";
 import { HONEYPOT } from "./submit";
 
 type Common = {
@@ -203,6 +205,24 @@ export function FormError({ message }: { message: string | null }) {
   return (
     <p role="alert" className="rounded-lg border border-[#a3402e]/40 bg-[#fbeee9] px-4 py-3 text-[#7a2f22]">
       {message}
+    </p>
+  );
+}
+
+/** Shown right before a client confirms a booking: a link to the policy, not the whole text. */
+export function PolicyNote({ className = "" }: { className?: string }) {
+  return (
+    <p className={`text-[0.9375rem] ${className}`} data-testid="policy-note">
+      By booking, you agree to our{" "}
+      <Link href={CANCELLATION_POLICY_PATH} target="_blank" rel="noopener">
+        Cancellation and Refund Policy
+        <span className="sr-only"> (opens in a new tab)</span>
+      </Link>{" "}
+      and <Link href="/terms" target="_blank" rel="noopener">
+        Terms of use
+        <span className="sr-only"> (opens in a new tab)</span>
+      </Link>
+      .
     </p>
   );
 }

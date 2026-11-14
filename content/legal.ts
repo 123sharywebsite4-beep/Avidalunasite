@@ -59,6 +59,42 @@ function builder(prefix: string) {
   };
 }
 
+export const CANCELLATION_POLICY_PATH = "/cancellation-policy";
+
+/**
+ * The Cancellation and Refund Policy, as Shary wrote it. Lives only in code (not in Sanity), so the
+ * page linked from every booking form always shows exactly this text.
+ */
+export function cancellationPolicy(): LegalPageContent {
+  const c = builder("c");
+  const lead = (heading: string, text: string): LegalBlock => {
+    const b = c.p(heading, ` ${text}`);
+    b.children[0].marks.push("strong");
+    return b;
+  };
+  return {
+    title: "Cancellation and Refund Policy",
+    body: [
+      lead(
+        "Restorative services booked through the Avida Luna website.",
+        "Please give at least 24 hours’ notice whenever possible. If you cancel less than 4 hours before your appointment, a $25 cancellation fee applies. There’s no cancellation fee with at least 4 hours’ notice.",
+      ),
+      lead(
+        "IV appointments booked through our medical platform.",
+        "If you cancel less than 24 hours before your appointment, you’ll be charged a cancellation fee equal to 50% of the booked IV service price.",
+      ),
+      lead(
+        "Telehealth consultations.",
+        "The fee for a completed telehealth consultation is nonrefundable regardless of whether the medical provider clears you for treatment. If you aren’t cleared, no treatment charge or cancellation fee applies.",
+      ),
+      lead(
+        "Treatment payments and refunds.",
+        "Payment for treatment is collected after service. Completed services are generally nonrefundable. We review billing errors, service concerns, and treatments that end early case by case. If Avida Luna Wellness cancels your appointment or treatment can’t begin for a clinical reason, any advance payment for that treatment will be refunded.",
+      ),
+    ],
+  };
+}
+
 const LEGAL_LINE = "Avida Luna LLC, doing business as Avida Luna Wellness";
 
 export type LegalOptions = {
@@ -91,8 +127,11 @@ export function legalDefaults(email: string, { onlinePayment = false }: LegalOpt
       t.p(
         "The date and time you choose for a restorative visit are a request until Shary confirms them by text or email. If you paid online and she can’t make that time, and no other time works for you, you get a full refund.",
       ),
-      // TODO (Shary): the full cancellation and refund policy (late cancellations, no-shows, rescheduling).
-      t.p("Cancellation and refund terms: TODO from Shary."),
+      t.p(
+        "Cancellations, cancellation fees and refunds are covered by our ",
+        { text: "Cancellation and Refund Policy", href: CANCELLATION_POLICY_PATH },
+        ".",
+      ),
       t.h2("Contact"),
       t.p("Questions: ", mail, ". See also our ", { text: "privacy notice", href: "/privacy" }, "."),
     ],
