@@ -24,8 +24,8 @@ const steps: {
     note: "A simple first step. About 30 seconds.",
     photo: {
       src: "/how/step-01-request.webp",
-      alt: "A phone showing the Avida Luna booking screen on a table beside a coffee mug in a bright Sarasota home",
-      position: "40% 60%",
+      alt: "A phone showing the Avida Luna “Book Your Visit” screen on a book beside a coffee mug in a bright Sarasota home",
+      position: "40% 55%",
     },
   },
   {
@@ -36,9 +36,9 @@ const steps: {
     visual: "Personal attention. From the very beginning.",
     note: "Medical screening happens on a secure, HIPAA-compliant booking page.",
     photo: {
-      src: "/services/vitamin-vials.webp",
-      alt: "Labeled vitamin vials and IV supplies neatly arranged on a stone tray in a sunlit home",
-      position: "50% 60%",
+      src: "/how/step-02-assessment.webp",
+      alt: "Avida Luna vials labeled Vitamin C, B Complex, Magnesium, Zinc and B12 on a stone tray beside an Avida Luna IV bag",
+      position: "45% 60%",
     },
   },
   {
@@ -50,8 +50,8 @@ const steps: {
     note: "Add an optional ritual after booking. Pay at your visit or online.",
     photo: {
       src: "/how/step-03-visit.webp",
-      alt: "An Avida Luna IV bag on a stand beside a cream armchair in a bright Sarasota home with palm trees outside",
-      position: "35% 50%",
+      alt: "An Avida Luna IV bag on a stand, labeled vials and an Avida Luna nurse bag beside a cream armchair in a bright Sarasota home with palm trees outside",
+      position: "40% 55%",
     },
   },
 ];

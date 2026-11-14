@@ -19,6 +19,7 @@ const staticPaths = [
   "/join",
   "/privacy",
   "/terms",
+  "/cancellation-policy",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
